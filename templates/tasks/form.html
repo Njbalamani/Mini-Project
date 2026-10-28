@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{% if mode == 'edit' %}Edit task{% else %}New task{% endif %} — NexaMind{% endblock %}
+{% block head %}<script src="{% static 'js/tags-input.js' %}" defer></script>{% endblock %}
+{% block content %}
+<h1 class="page-title">{% if mode == 'edit' %}Edit task{% else %}Create a task{% endif %}</h1>
+<p class="page-sub">{% if mode == 'edit' %}Update the details below.{% else %}Capture what needs doing.{% endif %}</p>
+
+<div class="card gold-edge" style="max-width:680px;" data-animate>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="form-grid">
+      {% if form.non_field_errors %}<div class="alert alert-error">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="field {% if form.title.errors %}is-invalid{% endif %}">
+        <label for="{{ form.title.id_for_label }}">Title</label>
+        {{ form.title }}
+        {% for e in form.title.errors %}<span class="error">{{ e }}</span>{% endfor %}
+      </div>
+      <div class="field {% if form.description.errors %}is-invalid{% endif %}">
+        <label for="{{ form.description.id_for_label }}">Description</label>
+        {{ form.description }}
+        {% for e in form.description.errors %}<span class="error">{{ e }}</span>{% endfor %}
+      </div>
+      <div class="two-col">
+        <div class="field">
+          <label for="{{ form.tags.id_for_label }}">Tags <span class="small muted">({{ form.tags.help_text }})</span></label>
+          {{ form.tags }}
+          {% for e in form.tags.errors %}<span class="error">{{ e }}</span>{% endfor %}
+        </div>
+        <div class="field"><label for="{{ form.status.id_for_label }}">Status</label>{{ form.status }}</div>
+      </div>
+      <div class="two-col">
+        <div class="field"><label for="{{ form.priority.id_for_label }}">Priority</label>{{ form.priority }}</div>
+        <div class="field"><label for="{{ form.category.id_for_label }}">Category</label>{{ form.category }}</div>
+      </div>
+      <div class="field"><label for="{{ form.due_date.id_for_label }}">Due date</label>{{ form.due_date }}</div>
+      <div class="two-col">
+        <div class="field {% if form.recurrence.errors %}is-invalid{% endif %}">
+          <label for="{{ form.recurrence.id_for_label }}">Repeats</label>
+          {{ form.recurrence }}
+          {% for e in form.recurrence.errors %}<span class="error">{{ e }}</span>{% endfor %}
+        </div>
+        <div class="field {% if form.recurrence_until.errors %}is-invalid{% endif %}">
+          <label for="{{ form.recurrence_until.id_for_label }}">Repeat until <span class="muted-2">(optional)</span></label>
+          {{ form.recurrence_until }}
+          {% for e in form.recurrence_until.errors %}<span class="error">{{ e }}</span>{% endfor %}
+        </div>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-gold" type="submit">{% if mode == 'edit' %}Save changes{% else %}Create task{% endif %}</button>
+      <a class="btn btn-ghost" href="{% if mode == 'edit' %}{% url 'tasks:detail' pk=task.pk %}{% else %}{% url 'tasks:list' %}{% endif %}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Integrations — NexaMind{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <h1 class="page-title">Integrations</h1>
+    <p class="page-sub mb-0">Connect your tools. Tokens are encrypted at rest and never shown in the browser.</p>
+  </div>
+  {% if request.user.is_staff %}
+  <div class="page-actions">
+    <a class="btn btn-ghost" href="{% url 'integrations:provider_credentials' %}">{% include 'components/icon.html' with name='key' %} Provider credentials</a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="grid-3">
+  {% for card in cards %}
+  <div class="card card-hover gold-edge" data-animate data-delay="{{ forloop.counter }}">
+    <div class="flex-between">
+      <div class="card-icon" style="width:52px;height:52px;">
+        {% if card.provider == 'github' %}{% include 'components/icon.html' with name='github' %}
+        {% elif card.provider == 'gmail' %}{% include 'components/icon.html' with name='mail' %}
+        {% elif card.provider == 'whatsapp' %}{% include 'components/icon.html' with name='whatsapp' %}
+        {% elif card.provider == 'linkedin' %}{% include 'components/icon.html' with name='linkedin' %}
+        {% elif card.provider == 'facebook' %}{% include 'components/icon.html' with name='facebook' %}
+        {% else %}{% include 'components/icon.html' with name='calendar' %}{% endif %}
+      </div>
+      {% if card.status == 'connected' %}<span class="badge green"><span class="dot"></span>Connected</span>
+      {% elif card.status == 'error' %}<span class="badge red">Error</span>
+      {% elif card.status == 'pending' %}<span class="badge gold">Pending</span>
+      {% else %}<span class="badge">Not connected</span>{% endif %}
+    </div>
+    <h3 style="margin:14px 0 6px;">{{ card.label }}</h3>
+    <p class="small muted">Scopes: {% for s in card.scopes %}<code>{{ s }}</code>{% if not forloop.last %} {% endif %}{% endfor %}</p>
+
+    {% if not card.configured %}
+      <div class="alert alert-warning small">Not configured yet.
+        {% if request.user.is_staff %}<a href="{% url 'integrations:provider_credentials' %}">Add credentials →</a>{% else %}Ask an administrator to add credentials.{% endif %}</div>
+    {% endif %}
+
+    <div class="flex gap-sm wrap" style="margin-top:12px;">
+      {% if card.status == 'connected' %}
+        {% if card.provider == 'whatsapp' %}
+        <a class="btn btn-gold btn-sm" href="{% url 'integrations:whatsapp_panel' %}">{% include 'components/icon.html' with name='send' %} Open messages</a>
+        {% elif card.provider == 'linkedin' or card.provider == 'facebook' %}
+        <form method="post" action="{% url 'integrations:sync' card.provider %}">{% csrf_token %}
+          <button class="btn btn-gold btn-sm" type="submit" {% if not card.configured %}disabled{% endif %}>{% include 'components/icon.html' with name='refresh' %} Refresh profile</button>
+        </form>
+        <a class="btn btn-ghost btn-sm" href="{% url 'integrations:detail' card.provider %}">Details</a>
+        {% else %}
+        <form method="post" action="{% url 'integrations:sync' card.provider %}">{% csrf_token %}
+          <button class="btn btn-gold btn-sm" type="submit" {% if not card.configured %}disabled{% endif %}>{% include 'components/icon.html' with name='refresh' %} Sync</button>
+        </form>
+        <a class="btn btn-ghost btn-sm" href="{% url 'integrations:detail' card.provider %}">Details</a>
+        {% endif %}
+        <form method="post" action="{% url 'integrations:disconnect' card.provider %}" data-confirm="Disconnect {{ card.label }} and remove stored tokens?">{% csrf_token %}
+          <button class="btn btn-danger btn-ghost btn-sm" type="submit">Disconnect</button>
+        </form>
+      {% else %}
+        <a class="btn btn-gold btn-sm {% if not card.configured %}disabled{% endif %}" href="{% url 'integrations:connect' card.provider %}">{% include 'components/icon.html' with name='plug' %} Connect</a>
+      {% endif %}
+    </div>
+    {% if card.integration.last_synced_at %}<p class="small muted-2" style="margin-top:10px;">Last synced {{ card.integration.last_synced_at|timesince }} ago</p>{% endif %}
+    {% if card.integration.last_error %}<p class="small" style="color:#f87171;margin-top:6px;">{{ card.integration.last_error }}</p>{% endif %}
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

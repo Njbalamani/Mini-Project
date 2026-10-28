@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}Plans & usage — NexaMind{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <h1 class="page-title">Plans &amp; usage</h1>
+    <p class="page-sub mb-0">You are on the <strong class="gold">{{ plan.name|default:'Free' }}</strong> plan. Usage resets monthly.</p>
+  </div>
+</div>
+
+<div class="two-col">
+  <div class="card gold-edge" data-animate>
+    <div class="card-head"><h3>Your usage this period</h3></div>
+    {% for u in usage %}
+    <div class="usage-row">
+      <div class="flex-between">
+        <span>{{ u.label }}</span>
+        <span class="small muted">{% if u.unlimited %}Unlimited{% else %}{{ u.used }} / {{ u.limit }}{% endif %}</span>
+      </div>
+      <div class="progress"><span style="width:{% if u.unlimited %}100{% else %}{{ u.percent }}{% endif %}%;"></span></div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="card" data-animate data-delay="1">
+    <div class="card-head"><h3>Available plans</h3><span class="badge gold">Test mode</span></div>
+    <p class="small muted">Plan changes run in test mode — no payment is processed.</p>
+    {% for p in plans %}
+    <div class="plan-row {% if p.slug == plan.slug %}current{% endif %}">
+      <div class="grow">
+        <div class="flex gap-sm" style="align-items:center;">
+          <strong>{{ p.name }}</strong>
+          {% if p.slug == plan.slug %}<span class="badge green">Current</span>{% endif %}
+        </div>
+        <div class="small muted">{{ p.description }}</div>
+        <div class="small muted-2">
+          {% for metric, limit in p.limits.items %}{{ metric|title }}: {% if limit < 0 %}∞{% else %}{{ limit }}{% endif %}{% if not forloop.last %} · {% endif %}{% endfor %}
+        </div>
+      </div>
+      <div class="plan-price">{% if p.price_cents %}{{ p.price_display }}/mo{% else %}Free{% endif %}</div>
+      {% if p.slug != plan.slug %}
+      <form method="post" action="{% url 'subscriptions:switch' p.slug %}">{% csrf_token %}
+        <button class="btn btn-ghost btn-sm" type="submit">Switch</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% block title %}Link WhatsApp — NexaMind{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <a class="small muted" href="{% url 'integrations:center' %}">← Integrations</a>
+    <h1 class="page-title" style="margin-top:6px;">{% include 'components/icon.html' with name='whatsapp' %} Link your WhatsApp</h1>
+    <p class="page-sub mb-0">Scan this with your phone to link your existing number.</p>
+  </div>
+</div>
+
+<div class="alert alert-warning" data-animate>
+  <strong>Unofficial.</strong> This pairs your personal number through the Linked-devices QR (not an official Meta API). It violates WhatsApp's Terms of Service and the number can be banned. Only continue with a number you can afford to lose.
+</div>
+
+<div class="two-col">
+  <div class="card gold-edge" data-animate>
+    <div class="card-head"><h3>Link with a code</h3><span id="wa-state" class="badge">connecting…</span></div>
+    <p class="small muted">Enter your WhatsApp number and NexaMind gives you an 8-digit code to type into WhatsApp — no camera needed.</p>
+    <div class="field">
+      <label for="wa-number-input">Your WhatsApp number (with country code)</label>
+      <div class="flex gap-sm">
+        <input class="form-input" id="wa-number-input" placeholder="15551234567" autocomplete="tel">
+        <button class="btn btn-gold" id="wa-pair-btn" type="button">Get code</button>
+      </div>
+    </div>
+    <div id="wa-code" class="alert alert-success" style="display:none;"></div>
+    <div id="wa-pair-error" class="alert alert-error" style="display:none;"></div>
+
+    <details style="margin-top:10px;">
+      <summary class="small muted" style="cursor:pointer;">or scan a QR instead</summary>
+      <div class="center" style="min-height:320px;display:grid;place-items:center;margin-top:10px;">
+        <img id="wa-qr" alt="WhatsApp pairing QR" style="display:none;width:280px;height:280px;border-radius:12px;background:#fff;padding:10px;">
+        <div id="wa-hint" class="muted small">
+          <div class="spinner" style="margin:0 auto 12px;"></div>
+          Waiting for the bridge to produce a QR…
+        </div>
+      </div>
+    </details>
+
+    <ol class="small muted" style="margin-top:12px;padding-left:18px;">
+      <li id="wa-step1">Open <strong>WhatsApp</strong> → <strong>Settings → Linked devices</strong>.</li>
+      <li id="wa-step2">Tap <strong>Link a device → Link with phone number instead</strong>.</li>
+      <li id="wa-step3">Type the code shown above.</li>
+    </ol>
+  </div>
+
+  <div class="card" data-animate data-delay="1">
+    <div class="card-head"><h3>Bridge status</h3></div>
+    <div class="row-list">
+      <div class="row-item"><div class="grow"><div class="small muted">Bridge endpoint</div><div id="wa-bridge">—</div></div></div>
+      <div class="row-item"><div class="grow"><div class="small muted">Linked number</div><div id="wa-me">—</div></div></div>
+      <div class="row-item"><div class="grow"><div class="small muted">Last error</div><div id="wa-error" class="small muted">—</div></div></div>
+    </div>
+    <div id="wa-offline" class="alert alert-warning small" style="display:none;">
+      The bridge is not running. Start it in <code>whatsapp-bridge/</code>:
+      <pre style="white-space:pre-wrap;margin:8px 0 0;">npm install
+$env:WA_BRIDGE_SECRET="your-bridge-secret"
+$env:WA_WEBHOOK_SECRET="your-app-secret"
+powershell -ExecutionPolicy Bypass -File .\run-bridge.ps1</pre>
+      Then reload this page.
+    </div>
+  </div>
+</div>
+
+<form id="wa-connect-form" method="post" action="{% url 'integrations:whatsapp_connect' %}" style="display:none;">
+  {% csrf_token %}
+  <input type="hidden" name="number" id="wa-number">
+</form>
+
+<script>
+(function () {
+  var stateEl = document.getElementById('wa-state');
+  var qrEl = document.getElementById('wa-qr');
+  var hintEl = document.getElementById('wa-hint');
+  var meEl = document.getElementById('wa-me');
+  var errEl = document.getElementById('wa-error');
+  var offlineEl = document.getElementById('wa-offline');
+  var form = document.getElementById('wa-connect-form');
+  var numberInput = document.getElementById('wa-number');
+  var codeEl = document.getElementById('wa-code');
+  var pairErr = document.getElementById('wa-pair-error');
+  var pairBtn = document.getElementById('wa-pair-btn');
+  var numberField = document.getElementById('wa-number-input');
+  var done = false;
+
+  function csrf() {
+    var el = form.querySelector('[name=csrfmiddlewaretoken]');
+    return el ? el.value : '';
+  }
+
+  pairBtn.addEventListener('click', function () {
+    pairErr.style.display = 'none';
+    pairBtn.disabled = true;
+    pairBtn.textContent = 'Requesting…';
+    fetch('{% url "integrations:whatsapp_pair" %}', {
+      method: 'POST',
+      headers: {
+        'X-CSRFToken': csrf(),
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Accept': 'application/json'
+      },
+      body: 'number=' + encodeURIComponent(numberField.value)
+    })
+      .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+      .then(function (res) {
+        pairBtn.disabled = false;
+        pairBtn.textContent = 'Get code';
+        if (res.d.redirect) { window.location = res.d.redirect; return; }
+        if (!res.ok || res.d.error) {
+          pairErr.textContent = res.d.error || 'Could not get a code.';
+          pairErr.style.display = 'block';
+          return;
+        }
+        codeEl.innerHTML = 'Pairing code: <strong style="font-size:1.4em;letter-spacing:.12em;">' +
+          res.d.code + '</strong><br><span class="small">Type this into WhatsApp within a few minutes.</span>';
+        codeEl.style.display = 'block';
+      })
+      .catch(function () {
+        pairBtn.disabled = false;
+        pairBtn.textContent = 'Get code';
+        pairErr.textContent = 'Bridge unreachable.';
+        pairErr.style.display = 'block';
+      });
+  });
+
+  function setState(text, cls) {
+    stateEl.textContent = text;
+    stateEl.className = 'badge ' + (cls || '');
+  }
+
+  function poll() {
+    if (done) return;
+    fetch('{% url "integrations:whatsapp_qr_status" %}', { headers: { 'Accept': 'application/json' } })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        errEl.textContent = d.error ? d.error : '—';
+        if (d.status === 'offline') {
+          setState('bridge offline', 'red');
+          offlineEl.style.display = 'block';
+          return;
+        }
+        offlineEl.style.display = 'none';
+        if (d.status === 'qr' && d.qr) {
+          qrEl.src = d.qr; qrEl.style.display = 'block'; hintEl.style.display = 'none';
+          setState('scan the QR', 'gold');
+        } else if (d.status === 'open') {
+          setState('linked', 'green');
+          meEl.textContent = d.me || 'linked';
+          if (d.me) { numberInput.value = d.me; done = true; form.submit(); }
+        } else if (d.status === 'connecting' || d.status === 'starting') {
+          setState('connecting…', '');
+          hintEl.style.display = 'block';
+        } else if (d.status === 'logout') {
+          setState('logged out', 'red');
+          hintEl.style.display = 'block';
+        }
+      })
+      .catch(function () { setState('bridge offline', 'red'); offlineEl.style.display = 'block'; });
+  }
+
+  document.getElementById('wa-bridge').textContent = location.origin.replace(/:\d+$/, ':3100');
+  poll();
+  var timer = setInterval(poll, 3000);
+  window.addEventListener('beforeunload', function () { clearInterval(timer); });
+})();
+</script>
+{% endblock %}

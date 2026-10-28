@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Sign-in activity — NexaMind{% endblock %}
+{% block content %}
+<h1 class="page-title">Sign-in activity</h1>
+<p class="page-sub">Recent login attempts on your account.</p>
+
+<div class="card" data-animate>
+  {% if attempts %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Time</th><th>Result</th><th>IP address</th><th>Browser</th></tr></thead>
+      <tbody>
+        {% for a in attempts %}
+        <tr>
+          <td>{{ a.created_at|date:'M d, Y H:i' }}</td>
+          <td>{% if a.result == 'success' %}<span class="badge green"><span class="dot"></span>Success</span>{% else %}<span class="badge red"><span class="dot"></span>Failed</span>{% endif %}</td>
+          <td>{{ a.ip_address|default:'—' }}</td>
+          <td class="small muted">{{ a.user_agent|truncatechars:60 }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="empty">
+    <div class="empty-ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 4 6v6c0 5 3.5 8 8 9 4.5-1 8-4 8-9V6z"/></svg></div>
+    <h3>No sign-in activity yet</h3>
+    <p>Your login attempts will appear here.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

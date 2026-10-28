@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}API tokens — NexaMind{% endblock %}
+{% block content %}
+<h1 class="page-title">API access</h1>
+<p class="page-sub">Use a personal token to call the NexaMind REST API from scripts and integrations.</p>
+{% include 'accounts/_settings_nav.html' %}
+
+<div class="card gold-edge" style="max-width:760px;" data-animate>
+  <h2 style="margin:0 0 6px;">Your API token</h2>
+  <p class="small muted" style="margin-top:0;">Treat this like a password. Anyone with it can act as you.</p>
+
+  <div class="token-box">
+    <span id="api-token-value" style="flex:1;">{{ token.key }}</span>
+    <button class="btn btn-ghost btn-sm" type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText('{{ token.key }}');nmToast&&nmToast('Token copied','success');">{% include 'components/icon.html' with name='doc' %} Copy</button>
+  </div>
+
+  <div class="form-actions" style="margin-top:16px;">
+    <form method="post" action="{% url 'accounts:api_token_regenerate' %}" onsubmit="return confirm('Generate a new token? The current token will stop working immediately.');">
+      {% csrf_token %}
+      <button class="btn btn-ghost" type="submit">{% include 'components/icon.html' with name='refresh' %} Regenerate</button>
+    </form>
+    <form method="post" action="{% url 'accounts:api_token_revoke' %}" onsubmit="return confirm('Revoke your API token? All API clients using it will be disconnected.');">
+      {% csrf_token %}
+      <button class="btn btn-ghost" style="color:var(--danger);" type="submit">{% include 'components/icon.html' with name='trash' %} Revoke</button>
+    </form>
+  </div>
+
+  <h3 style="margin-top:26px;">Authenticate a request</h3>
+  <p class="small muted">Send the token in the <code>Authorization</code> header:</p>
+  <pre class="token-box" style="display:block; white-space:pre-wrap;">curl {{ api_base }}tasks/ \
+  -H "Authorization: Token {{ token.key }}"</pre>
+
+  <p class="small muted" style="margin-top:14px;">
+    Interactive reference: <a href="/api/docs/" target="_blank" rel="noopener">Swagger UI</a> ·
+    <a href="/api/schema/" target="_blank" rel="noopener">OpenAPI schema</a>
+  </p>
+</div>
+
+<div class="card" style="max-width:760px; margin-top:16px;" data-animate>
+  <h2 style="margin:0 0 12px;">Available endpoints</h2>
+  <div class="table-wrap">
+    <table class="table endpoint-table">
+      <thead><tr><th>Method</th><th>Endpoint</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td><span class="method get">GET</span></td><td><code>/api/v1/health/</code></td><td>Service health check</td></tr>
+        <tr><td><span class="method get">GET</span></td><td><code>/api/v1/accounts/me/</code></td><td>Current user profile</td></tr>
+        <tr><td><span class="method get">GET</span></td><td><code>/api/v1/dashboard/</code></td><td>Dashboard summary</td></tr>
+        <tr><td><span class="method get">GET</span></td><td><code>/api/v1/analytics/</code></td><td>Usage analytics</td></tr>
+        <tr><td><span class="method get">GET</span><span class="method post"> POST</span></td><td><code>/api/v1/tasks/</code></td><td>List &amp; create tasks</td></tr>
+        <tr><td><span class="method get">GET</span><span class="method patch"> PATCH</span></td><td><code>/api/v1/tasks/&lt;id&gt;/</code></td><td>Read &amp; update a task</td></tr>
+        <tr><td><span class="method get">GET</span><span class="method post"> POST</span></td><td><code>/api/v1/calendar/events/</code></td><td>Calendar events</td></tr>
+        <tr><td><span class="method get">GET</span><span class="method post"> POST</span></td><td><code>/api/v1/assistant/conversations/</code></td><td>Assistant conversations</td></tr>
+        <tr><td><span class="method get">GET</span></td><td><code>/api/v1/workflows/</code></td><td>Automation workflows</td></tr>
+        <tr><td><span class="method get">GET</span><span class="method post"> POST</span></td><td><code>/api/v1/documents/</code></td><td>Knowledge documents</td></tr>
+        <tr><td><span class="method get">GET</span></td><td><code>/api/v1/notifications/</code></td><td>Notifications</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

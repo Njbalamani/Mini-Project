@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Tags — Tasks{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <a class="small muted" href="{% url 'tasks:list' %}">← Back to tasks</a>
+    <h1 class="page-title" style="margin-top:6px;">Tags</h1>
+    <p class="page-sub mb-0">{{ tags|length }} tag{{ tags|length|pluralize }} · reuse them across tasks for quick filtering.</p>
+  </div>
+</div>
+
+<div class="two-col">
+  <div class="card gold-edge" data-animate>
+    <div class="card-head"><h3>Your tags</h3></div>
+    {% if tags %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Tag</th><th>Tasks</th><th></th></tr></thead>
+        <tbody>
+          {% for tag in tags %}
+          <tr>
+            <td><span class="tag-pill" style="--tag:{{ tag.color }}">{{ tag.name }}</span></td>
+            <td><a class="small" href="{% url 'tasks:list' %}?tag={{ tag.name|urlencode }}">{{ tag.task_count }}</a></td>
+            <td class="row-actions">
+              <a class="icon-btn sm" href="{% url 'tasks:tag_edit' tag.pk %}" title="Edit">{% include 'components/icon.html' with name='edit' %}</a>
+              <form method="post" action="{% url 'tasks:tag_delete' tag.pk %}" class="inline" onsubmit="return confirm('Delete this tag? It will be removed from all tasks.');">
+                {% csrf_token %}
+                <button class="icon-btn sm danger" type="submit" title="Delete">{% include 'components/icon.html' with name='trash' %}</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+      {% include 'components/empty.html' with icon='filter' title='No tags yet' text='Create your first tag to organise tasks.' %}
+    {% endif %}
+  </div>
+
+  <div class="card" data-animate data-delay="1">
+    <div class="card-head"><h3>New tag</h3></div>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="field {% if form.name.errors %}is-invalid{% endif %}">
+        <label for="{{ form.name.id_for_label }}">Name</label>
+        {{ form.name }}
+        {% for e in form.name.errors %}<span class="error">{{ e }}</span>{% endfor %}
+      </div>
+      <div class="field {% if form.color.errors %}is-invalid{% endif %}">
+        <label for="{{ form.color.id_for_label }}">Colour</label>
+        {{ form.color }}
+        {% for e in form.color.errors %}<span class="error">{{ e }}</span>{% endfor %}
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-gold" type="submit">{% include 'components/icon.html' with name='plus' %} Create tag</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

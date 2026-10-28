@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Notifications — NexaMind{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <h1 class="page-title">Notifications</h1>
+    <p class="page-sub mb-0">{{ unread_count }} unread</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-ghost" href="{% url 'notifications:digest' %}">{% include 'components/icon.html' with name='inbox' %} Digest</a>
+    <form method="post" action="{% url 'notifications:mark_all_read' %}">{% csrf_token %}
+      <button class="btn btn-gold" type="submit">{% include 'components/icon.html' with name='check' %} Mark all read</button>
+    </form>
+  </div>
+</div>
+
+<form method="get" class="card filter-bar" data-animate>
+  <label class="check-row"><input type="checkbox" name="unread" value="1" {% if unread_only %}checked{% endif %} onchange="this.form.submit()"> Unread only</label>
+  <select class="form-input" name="type" onchange="this.form.submit()">
+    <option value="">All types</option>
+    {% for value, label in types %}
+      <option value="{{ value }}" {% if current_type == value %}selected{% endif %}>{{ label }}</option>
+    {% endfor %}
+  </select>
+  <button class="btn btn-ghost" type="submit">Filter</button>
+</form>
+
+<div class="card mt-16" data-animate data-delay="1">
+  {% if page_obj.object_list %}
+  <div class="notif-list">
+    {% for note in page_obj %}
+    <div class="notif-item {% if not note.is_read %}unread{% endif %}" data-url="{% if note.url %}{{ note.url }}{% endif %}">
+      <span class="n-dot level-{{ note.level }}"></span>
+      <div class="grow">
+        <div class="flex gap-sm" style="align-items:center;">
+          <strong>{{ note.title }}</strong>
+          <span class="badge">{{ note.get_type_display }}</span>
+        </div>
+        {% if note.message %}<p class="small muted" style="margin:4px 0 0;">{{ note.message }}</p>{% endif %}
+        <div class="small muted-2">{{ note.created_at|timesince }} ago</div>
+      </div>
+      {% if not note.is_read %}
+      <form method="post" action="{% url 'notifications:mark_read' note.pk %}" class="js-mark-read">{% csrf_token %}
+        <button class="btn btn-ghost btn-sm" type="submit">Mark read</button>
+      </form>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% include 'components/pagination.html' with page_obj=page_obj %}
+  {% else %}
+    {% include 'components/empty.html' with icon='bell' title='No notifications' text='You are all caught up.' %}
+  {% endif %}
+</div>
+{% endblock %}

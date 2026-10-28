@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}AI Assistant — NexaMind{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <h1 class="page-title">AI Assistant</h1>
+    <p class="page-sub mb-0">
+      {% if provider.configured %}Connected to <strong class="gold">{{ provider.name }}</strong>{% else %}Not connected to an AI provider{% endif %}
+    </p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-ghost" href="{% url 'ai_assistant:insights' %}">{% include 'components/icon.html' with name='spark' %} ML insights</a>
+    <a class="btn btn-ghost" href="{% url 'ai_assistant:settings' %}">{% include 'components/icon.html' with name='gear' %} AI settings</a>
+    <form method="post" action="{% url 'ai_assistant:new_conversation' %}">
+      {% csrf_token %}
+      <button class="btn btn-gold" type="submit">{% include 'components/icon.html' with name='plus' %} New conversation</button>
+    </form>
+  </div>
+</div>
+
+{% if not provider.configured %}
+<div class="alert alert-warning" data-animate>
+  <strong>No AI provider configured.</strong> NexaMind will not invent responses. Configure an API key or enable the clearly-labelled offline demo in
+  <a href="{% url 'ai_assistant:settings' %}">AI settings</a>.
+</div>
+{% endif %}
+
+<div class="card" data-animate data-delay="1">
+  <div class="card-head"><h3>Your conversations</h3></div>
+  {% if conversations %}
+  <div class="row-list">
+    {% for c in conversations %}
+    <a class="row-item" href="{% url 'ai_assistant:conversation' c.pk %}">
+      <span class="card-icon" style="width:40px;height:40px;">{% include 'components/icon.html' with name='spark' %}</span>
+      <div class="grow">
+        <div style="font-weight:600;">{{ c.title|truncatechars:70 }}</div>
+        <div class="small muted">{{ c.messages.count }} message{{ c.messages.count|pluralize }} · {{ c.updated_at|timesince }} ago</div>
+      </div>
+      {% include 'components/icon.html' with name='arrow' %}
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+    {% include 'components/empty.html' with icon='spark' title='No conversations yet' text='Start a conversation and let NexaMind help you plan, draft and automate.' %}
+  {% endif %}
+</div>
+{% endblock %}

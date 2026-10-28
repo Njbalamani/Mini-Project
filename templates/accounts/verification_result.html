@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Email verification — NexaMind{% endblock %}
+{% block content %}
+<div class="card" data-animate style="max-width:520px;margin:60px auto;">
+  <div class="center">
+    {% if user.is_email_verified %}
+      <h2 class="gold">Email verified</h2>
+      <p class="muted">Your email is verified. Proceed to your dashboard.</p>
+    {% else %}
+      <h2 class="grad-text">We couldn't verify that link</h2>
+      <p class="muted">The link may be invalid or expired.</p>
+      <form method="post" action="{% url 'accounts:resend_verification' %}">
+        {% csrf_token %}
+        <button class="btn btn-gold" type="submit">Send a new link</button>
+      </form>
+    {% endif %}
+    <a class="btn btn-ghost" style="margin-top:12px;" href="{% url 'dashboard:home' %}">Go to dashboard</a>
+  </div>
+</div>
+{% endblock %}

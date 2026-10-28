@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Workflows — NexaMind{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <h1 class="page-title">Workflows</h1>
+    <p class="page-sub mb-0">{{ stats.total }} executions · {{ stats.succeeded }} succeeded · {{ stats.failed }} failed</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-ghost" href="{% url 'workflow_automation:executions' %}">{% include 'components/icon.html' with name='clock' %} Executions</a>
+    <a class="btn btn-gold" href="{% url 'workflow_automation:create' %}">{% include 'components/icon.html' with name='plus' %} New workflow</a>
+  </div>
+</div>
+
+<div class="card" data-animate>
+  {% if workflows %}
+  <div class="row-list">
+    {% for wf in workflows %}
+    <div class="row-item">
+      <span class="card-icon" style="width:42px;height:42px;">{% include 'components/icon.html' with name='bolt' %}</span>
+      <div class="grow">
+        <div class="flex gap-sm" style="align-items:center;">
+          <a href="{% url 'workflow_automation:detail' wf.pk %}" style="font-weight:600;">{{ wf.name }}</a>
+          {% if wf.is_enabled %}<span class="badge green"><span class="dot"></span>Enabled</span>{% else %}<span class="badge">Disabled</span>{% endif %}
+        </div>
+        <div class="small muted">{{ wf.description|default:'No description' }}</div>
+        <div class="small muted-2">{{ wf.execution_count }} run{{ wf.execution_count|pluralize }}{% if wf.failure_count %} · {{ wf.failure_count }} failed{% endif %} · {% if wf.last_run_at %}last {{ wf.last_run_at|timesince }} ago{% else %}never run{% endif %}</div>
+      </div>
+      <div class="row-actions">
+        <form method="post" action="{% url 'workflow_automation:toggle' wf.pk %}">
+          {% csrf_token %}
+          <button class="btn btn-ghost btn-sm" type="submit">{% if wf.is_enabled %}Disable{% else %}Enable{% endif %}</button>
+        </form>
+        <a class="icon-btn sm" href="{% url 'workflow_automation:edit' wf.pk %}" title="Edit">{% include 'components/icon.html' with name='edit' %}</a>
+        <a class="icon-btn sm danger" href="{% url 'workflow_automation:delete' wf.pk %}" title="Delete">{% include 'components/icon.html' with name='trash' %}</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+    {% include 'components/empty.html' with icon='bolt' title='No workflows yet' text='Automate recurring work with triggers, conditions and actions.' url='workflow_automation:create' url_text='Create workflow' %}
+  {% endif %}
+</div>
+{% endblock %}

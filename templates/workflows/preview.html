@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Preview — {{ workflow.name }}{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <a class="small muted" href="{% url 'workflow_automation:detail' workflow.pk %}">← Back to workflow</a>
+    <h1 class="page-title" style="margin-top:6px;">Preview</h1>
+    <p class="page-sub mb-0">{{ workflow.name }}</p>
+  </div>
+</div>
+
+<div class="card gold-edge" data-animate>
+  {% if preview.valid %}
+    <div class="timeline">
+      {% for step in preview.steps %}
+      <div class="t-item">
+        <div class="t-time">Step {{ step.order }} · {{ step.kind|title }}</div>
+        <div class="t-title">{{ step.label }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="small muted mb-0">Conditions currently met: <strong class="gold">{{ preview.conditions_met }}</strong></p>
+  {% else %}
+    <div class="alert alert-warning">This workflow is not valid: {{ preview.errors|join:'; ' }}</div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% block title %}Email settings — NexaMind{% endblock %}
+{% block content %}
+<h1 class="page-title">Email settings</h1>
+<p class="page-sub">Control what NexaMind may store and send. Safe defaults: everything off.</p>
+
+<div class="card gold-edge" style="max-width:640px;" data-animate>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      {% for field in form %}
+      <div class="flex-between" style="padding:12px 0;border-bottom:1px solid var(--border-soft);">
+        <div>
+          <div style="font-weight:600;font-size:.92rem;">{{ field.label }}</div>
+          <div class="small muted">
+            {% if field.name == 'store_message_bodies' %}Retain fuller message bodies for summarisation. Off by default for privacy.
+            {% elif field.name == 'sending_enabled' %}Allow approved drafts to be sent. Requires a connected Gmail account.
+            {% else %}Automatically categorise fetched messages using your rules.{% endif %}
+          </div>
+        </div>
+        <label class="switch">{{ field }}<span class="slider"></span></label>
+      </div>
+      {% endfor %}
+      <button class="btn btn-gold" type="submit" style="justify-self:start;">Save settings</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

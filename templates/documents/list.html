@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% block title %}Documents — NexaMind{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <h1 class="page-title">Documents</h1>
+    <p class="page-sub mb-0">Upload PDF, DOCX or TXT files and let NexaMind extract insights.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-gold" href="{% url 'documents:upload' %}">{% include 'components/icon.html' with name='upload' %} Upload document</a>
+  </div>
+</div>
+
+<form method="get" class="card filter-bar" data-animate>
+  <div class="filter-search">
+    {% include 'components/icon.html' with name='search' %}
+    <input class="form-input" type="search" name="q" value="{{ q }}" placeholder="Search documents…">
+  </div>
+  <button class="btn btn-ghost" type="submit">Search</button>
+</form>
+
+<div class="card mt-16" data-animate data-delay="1">
+  {% if page_obj.object_list %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Title</th><th>Status</th><th>Size</th><th>Pages</th><th>Uploaded</th><th></th></tr></thead>
+      <tbody>
+        {% for doc in page_obj %}
+        <tr>
+          <td><a href="{% url 'documents:detail' doc.pk %}">{{ doc.title }}</a><div class="small muted">{{ doc.original_name }}</div></td>
+          <td><span class="badge status-{{ doc.status }}">{{ doc.get_status_display }}</span></td>
+          <td>{{ doc.size_kb }} KB</td>
+          <td>{{ doc.page_count|default:'—' }}</td>
+          <td>{{ doc.created_at|date:'M d, H:i' }}</td>
+          <td class="row-actions">
+            <a class="icon-btn sm" href="{% url 'documents:detail' doc.pk %}" title="Open">{% include 'components/icon.html' with name='external' %}</a>
+            <a class="icon-btn sm danger" href="{% url 'documents:delete' doc.pk %}" title="Delete">{% include 'components/icon.html' with name='trash' %}</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'components/pagination.html' with page_obj=page_obj %}
+  {% else %}
+    {% include 'components/empty.html' with icon='doc' title='No documents yet' text='Upload a PDF, DOCX or TXT file to get started.' url='documents:upload' url_text='Upload document' %}
+  {% endif %}
+</div>
+{% endblock %}

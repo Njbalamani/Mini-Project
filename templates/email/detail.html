@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}{{ meta.subject|default:'Message' }} — Email{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <a class="small muted" href="{% url 'email_manager:home' %}">← Back to inbox</a>
+    <h1 class="page-title" style="margin-top:6px;">{{ meta.subject|default:'(no subject)' }}</h1>
+    <p class="page-sub mb-0">{{ meta.sender }} · {{ meta.received_at }}{% if meta.category %} · <span class="badge">{{ meta.category }}</span>{% endif %}</p>
+  </div>
+  <div class="page-actions">
+    <form method="post" action="{% url 'email_manager:summarize' meta.pk %}">{% csrf_token %}
+      <button class="btn btn-ghost" type="submit">{% include 'components/icon.html' with name='spark' %} Summarize</button>
+    </form>
+    <form method="post" action="{% url 'email_manager:draft_reply' meta.pk %}">{% csrf_token %}
+      <button class="btn btn-gold" type="submit">{% include 'components/icon.html' with name='edit' %} Draft reply</button>
+    </form>
+  </div>
+</div>
+
+{% if request.session.email_summary %}
+<div class="card gold-edge mb-16" data-animate>
+  <div class="card-head"><h3>AI summary</h3><span class="badge gold">Generated</span></div>
+  <p style="white-space:pre-line;">{{ request.session.email_summary }}</p>
+</div>
+{% endif %}
+
+<div class="card" data-animate data-delay="1">
+  <div class="card-head"><h3>Message</h3>
+    {% if not meta.body %}<span class="badge">Metadata only</span>{% endif %}
+  </div>
+  {% if meta.body %}
+    <p style="white-space:pre-line;">{{ meta.body }}</p>
+  {% else %}
+    <p class="muted">{{ meta.snippet|default:'No content stored. Enable body storage in settings to retain message content.' }}</p>
+    <p class="small muted-2">NexaMind stores only metadata by default. Go to <a href="{% url 'email_manager:settings' %}">email settings</a> to opt in to body storage.</p>
+  {% endif %}
+</div>
+{% endblock %}

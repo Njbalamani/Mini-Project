@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Calendar — NexaMind{% endblock %}
+{% block head %}<script src="{% static 'js/calendar-dnd.js' %}" defer></script>{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <h1 class="page-title">Calendar</h1>
+    <p class="page-sub mb-0">{{ month_name }} {{ year }}</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-ghost" href="{% url 'calendar_manager:free_slots' %}">{% include 'components/icon.html' with name='clock' %} Find free slots</a>
+    <a class="btn btn-ghost" href="{% url 'calendar_manager:export' %}">{% include 'components/icon.html' with name='download' %} Export .ics</a>
+    <a class="btn btn-gold" href="{% url 'calendar_manager:create' %}">{% include 'components/icon.html' with name='plus' %} New event</a>
+  </div>
+</div>
+
+<div class="cal-layout">
+  <div class="card cal-card" data-animate>
+    <div class="cal-toolbar">
+      <div class="flex gap-sm">
+        <a class="icon-btn" href="?year={{ prev_year }}&month={{ prev_month }}" aria-label="Previous month">‹</a>
+        <a class="btn btn-ghost btn-sm" href="{% url 'calendar_manager:calendar' %}">Today</a>
+        <a class="icon-btn" href="?year={{ next_year }}&month={{ next_month }}" aria-label="Next month">›</a>
+      </div>
+      <h2 class="cal-month grad-text">{{ month_name }} {{ year }}</h2>
+    </div>
+
+    <div class="cal-grid cal-head">
+      {% for h in weekday_headers %}<div class="cal-dow">{{ h }}</div>{% endfor %}
+    </div>
+    <div class="cal-grid cal-body">
+      {% for week in month_matrix %}
+        {% for cell in week %}
+        <div class="cal-cell {% if not cell.in_month %}dim{% endif %} {% if cell.is_today %}today{% endif %}" data-drop-date="{{ cell.date|date:'Y-m-d' }}">
+          <div class="cal-date">{{ cell.date.day }}</div>
+          <div class="cal-events">
+            {% for ev in cell.events %}
+              <a class="cal-event" href="{% url 'calendar_manager:detail' ev.pk %}" title="{{ ev.title }}"
+                 draggable="true" data-event-id="{{ ev.pk }}"
+                 data-move-url="{% url 'calendar_manager:event_move' ev.pk %}">
+                <span class="ev-dot" style="background:{% cycle '#d4af37' '#b08d2b' '#e8c86a' '#8a6d1f' %}"></span>
+                {{ ev.title|truncatechars:16 }}
+              </a>
+            {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px;">
+  <aside class="card" data-animate data-delay="1">
+    <div class="card-head"><h3>Upcoming</h3></div>
+    {% if upcoming %}
+    <div class="row-list">
+      {% for ev in upcoming %}
+      <a class="row-item" href="{% url 'calendar_manager:detail' ev.pk %}">
+        <div class="card-icon" style="width:38px;height:38px;">{% include 'components/icon.html' with name='calendar' %}</div>
+        <div class="grow">
+          <div style="font-weight:600;">{{ ev.title }}</div>
+          <div class="small muted">{{ ev.start|date:'D, M d H:i' }} · {{ ev.duration_minutes }}m</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+      {% include 'components/empty.html' with icon='calendar' title='Nothing scheduled' text='Your upcoming events will appear here.' %}
+    {% endif %}
+  </aside>
+
+  <aside class="card" data-animate data-delay="2">
+    <div class="card-head"><h3>Subscribe</h3></div>
+    <p class="small muted">Add this private feed URL to Google Calendar, Apple Calendar or Outlook to see your NexaMind events there.</p>
+    <div class="field">
+      <input class="form-input" type="text" value="{{ feed_url }}" readonly onclick="this.select()" aria-label="Calendar feed URL">
+    </div>
+    <div class="flex gap-sm wrap">
+      <a class="btn btn-ghost btn-sm" href="{{ feed_url }}">{% include 'components/icon.html' with name='external' %} Open feed</a>
+      <form method="post" action="{% url 'calendar_manager:feed_reset' %}" onsubmit="return confirm('Regenerate the feed URL? Existing subscriptions will stop working.');">
+        {% csrf_token %}
+        <button class="btn btn-danger btn-ghost btn-sm" type="submit">{% include 'components/icon.html' with name='refresh' %} Regenerate</button>
+      </form>
+    </div>
+    <p class="small muted mb-0" style="margin-top:8px;">Anyone with this URL can read your events — keep it secret.</p>
+  </aside>
+  </div>
+</div>
+{% endblock %}

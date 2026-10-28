@@ -1,0 +1,52 @@
+﻿{% extends 'base.html' %}
+{% block title %}Active sessions — NexaMind{% endblock %}
+{% block content %}
+<h1 class="page-title">Active sessions</h1>
+<p class="page-sub">Devices and browsers currently signed in to your account.</p>
+{% include 'accounts/_settings_nav.html' %}
+
+<div class="card" data-animate>
+  <div class="card-head">
+    <h3>Signed-in sessions</h3>
+    {% if sessions|length > 1 %}
+    <form method="post" action="{% url 'accounts:sessions_revoke_others' %}"
+          onsubmit="return confirm('Sign out every session except this one?');">
+      {% csrf_token %}
+      <button class="btn btn-danger btn-ghost btn-sm" type="submit">{% include 'components/icon.html' with name='shield' %} Sign out other sessions</button>
+    </form>
+    {% endif %}
+  </div>
+
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Session</th><th>Signed in (approx.)</th><th>Expires</th><th></th></tr></thead>
+      <tbody>
+        {% for s in sessions %}
+        <tr>
+          <td>
+            <code>{{ s.short }}…</code>
+            {% if s.is_current %}<span class="badge green"><span class="dot"></span>This device</span>{% endif %}
+          </td>
+          <td class="small muted">{{ s.started|date:'M d, Y H:i' }}</td>
+          <td class="small muted">{{ s.expire_date|date:'M d, Y H:i' }}</td>
+          <td style="text-align:right;">
+            {% if not s.is_current %}
+            <form method="post" action="{% url 'accounts:session_revoke' s.key %}"
+                  onsubmit="return confirm('Sign out this session?');">
+              {% csrf_token %}
+              <button class="btn btn-danger btn-ghost btn-sm" type="submit">Sign out</button>
+            </form>
+            {% else %}
+            <span class="small muted">Current</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="4" class="small muted">No active sessions.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <p class="small muted" style="margin-top:12px;">If you notice unfamiliar activity, sign the session out and change your password.</p>
+</div>
+{% endblock %}

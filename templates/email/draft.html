@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% block title %}Draft — Email{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <a class="small muted" href="{% url 'email_manager:home' %}">← Back</a>
+    <h1 class="page-title" style="margin-top:6px;">Email draft</h1>
+    <p class="page-sub mb-0">
+      Status: <span class="badge status-{{ draft.status }}">{{ draft.get_status_display }}</span>
+      {% if not settings.sending_enabled %}<span class="badge red">Sending disabled</span>{% endif %}
+    </p>
+  </div>
+</div>
+
+<div class="card gold-edge" style="max-width:720px;" data-animate>
+  <form method="post" action="{% url 'email_manager:approve_send' draft.pk %}">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="field"><label for="{{ form.to.id_for_label }}">To</label>{{ form.to }}</div>
+      <div class="field"><label for="{{ form.subject.id_for_label }}">Subject</label>{{ form.subject }}</div>
+      <div class="field"><label for="{{ form.body.id_for_label }}">Message</label>{{ form.body }}</div>
+      <div class="alert alert-info">
+        {% if settings.sending_enabled %}
+          Sending is enabled for your account. Pressing “Approve &amp; send” authorises NexaMind to send this message via your connected Gmail account.
+        {% else %}
+          Sending is currently <strong>disabled</strong>. This draft stays saved. An administrator must enable sending before it can go out.
+        {% endif %}
+      </div>
+      <div class="flex gap-sm">
+        <button class="btn btn-gold" type="submit" name="approve" value="1" {% if not settings.sending_enabled %}disabled{% endif %}>{% include 'components/icon.html' with name='send' %} Approve &amp; send</button>
+        <button class="btn btn-ghost" type="submit" name="approve" value="0">Save without sending</button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

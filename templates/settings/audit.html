@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% block title %}Activity log — NexaMind{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <h1 class="page-title">Activity log</h1>
+    <p class="page-sub mb-0">An append-only record of actions on your account.</p>
+  </div>
+</div>
+
+<form method="get" class="card filter-bar" data-animate>
+  <select class="form-input" name="action" onchange="this.form.submit()">
+    <option value="">All actions</option>
+    {% for a in actions %}
+      <option value="{{ a }}" {% if current_action == a %}selected{% endif %}>{{ a }}</option>
+    {% endfor %}
+  </select>
+  <select class="form-input" name="outcome" onchange="this.form.submit()">
+    <option value="">All outcomes</option>
+    <option value="success" {% if current_outcome == 'success' %}selected{% endif %}>Success</option>
+    <option value="failure" {% if current_outcome == 'failure' %}selected{% endif %}>Failure</option>
+    <option value="denied" {% if current_outcome == 'denied' %}selected{% endif %}>Denied</option>
+  </select>
+  <button class="btn btn-ghost" type="submit">Filter</button>
+</form>
+
+<div class="card mt-16" data-animate data-delay="1">
+  {% if page_obj.object_list %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Time</th><th>Action</th><th>Resource</th><th>Outcome</th><th>IP</th></tr></thead>
+      <tbody>
+        {% for log in page_obj %}
+        <tr>
+          <td class="small">{{ log.timestamp|date:'M d, H:i:s' }}</td>
+          <td>{{ log.action }}</td>
+          <td class="small muted">{{ log.resource_type }}{% if log.resource_id %} #{{ log.resource_id }}{% endif %}</td>
+          <td>
+            {% if log.outcome == 'success' %}<span class="badge green"><span class="dot"></span>Success</span>
+            {% elif log.outcome == 'denied' %}<span class="badge gold">Denied</span>
+            {% else %}<span class="badge red">Failure</span>{% endif %}
+          </td>
+          <td class="small muted">{{ log.ip_address|default:'—' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'components/pagination.html' with page_obj=page_obj %}
+  {% else %}
+    {% include 'components/empty.html' with icon='shield' title='No activity recorded' text='Actions you take will appear here.' %}
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends 'base.html' %}
+{% block title %}{{ event.title }} — Calendar{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <a class="small muted" href="{% url 'calendar_manager:calendar' %}">← Back to calendar</a>
+    <h1 class="page-title" style="margin-top:6px;">{{ event.title }}</h1>
+    <div class="flex wrap gap-sm" style="margin-top:8px;">
+      {% if event.all_day %}<span class="badge gold">All day</span>{% endif %}
+      {% if event.recurrence != 'none' %}<span class="badge">Repeats {{ event.get_recurrence_display }}</span>{% endif %}
+      <span class="badge">{% if event.source == 'google' %}Google Calendar{% else %}NexaMind{% endif %}</span>
+    </div>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-ghost" href="{% url 'calendar_manager:edit' event.pk %}">{% include 'components/icon.html' with name='edit' %} Edit</a>
+    <a class="btn btn-danger btn-ghost" href="{% url 'calendar_manager:delete' event.pk %}">{% include 'components/icon.html' with name='trash' %} Delete</a>
+  </div>
+</div>
+
+<div class="two-col">
+  <div class="card gold-edge" data-animate>
+    <div class="card-head"><h3>Event details</h3></div>
+    <dl class="kv">
+      <dt>Starts</dt><dd>{{ event.start|date:'D, M d Y H:i' }}</dd>
+      <dt>Ends</dt><dd>{{ event.end|date:'D, M d Y H:i' }}</dd>
+      <dt>Duration</dt><dd>{{ event.duration_minutes }} minutes</dd>
+      <dt>Location</dt><dd>{{ event.location|default:'—' }}</dd>
+      <dt>Timezone</dt><dd>{{ event.timezone }}</dd>
+      <dt>Recurrence</dt><dd>{{ event.get_recurrence_display }}</dd>
+    </dl>
+    {% if event.description %}<p style="white-space:pre-line;">{{ event.description }}</p>{% endif %}
+  </div>
+
+  <div class="card" data-animate data-delay="1">
+    <div class="card-head"><h3>Reminders</h3></div>
+    {% for r in event.reminders.all %}
+      <div class="row-item">
+        <div class="card-icon" style="width:34px;height:34px;">{% include 'components/icon.html' with name='bell' %}</div>
+        <div class="grow"><span>{{ r.minutes_before }} minutes before</span></div>
+        {% if r.sent %}<span class="badge green">Sent</span>{% else %}<span class="badge">Pending</span>{% endif %}
+      </div>
+    {% empty %}
+      <p class="small muted mb-0">No reminders set for this event.</p>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

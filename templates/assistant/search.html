@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Search — NexaMind{% endblock %}
+{% block content %}
+<h1 class="page-title">Search</h1>
+<p class="page-sub">Search across tasks, events, documents, conversations, workflows and email.</p>
+
+<form method="get" class="card filter-bar mt-16" data-animate>
+  <div class="filter-search">
+    {% include 'components/icon.html' with name='search' %}
+    <input class="form-input" type="search" name="q" value="{{ q }}" placeholder="Search the workspace…" autofocus>
+  </div>
+  <button class="btn btn-gold" type="submit">Search</button>
+</form>
+
+<div class="mt-16" data-animate data-delay="1">
+  {% if q %}
+    <div class="page-sub mb-8">{{ total }} result{{ total|pluralize }} for “{{ q }}”</div>
+    {% if groups %}
+      {% for group in groups %}
+      <div class="card mb-12">
+        <div class="card-head">
+          <h3><span class="card-icon" style="width:34px;height:34px;display:inline-grid;vertical-align:middle;margin-right:8px;">{% include 'components/icon.html' with name=group.icon %}</span>{{ group.label }}</h3>
+        </div>
+        <div class="row-list">
+          {% for hit in group.hits %}
+          <a class="row-item" href="{{ hit.url }}">
+            <div class="grow">
+              <div style="font-weight:600;">{{ hit.title }}</div>
+              {% if hit.subtitle %}<div class="small muted">{{ hit.subtitle }}</div>{% endif %}
+            </div>
+            <span class="chip" style="pointer-events:none;">{{ group.label }}</span>
+          </a>
+          {% endfor %}
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      {% include 'components/empty.html' with icon='search' title='No matches' text='Try a different keyword.' %}
+    {% endif %}
+  {% else %}
+    {% include 'components/empty.html' with icon='search' title='Search the workspace' text='Enter a keyword to search across all of your data.' %}
+  {% endif %}
+</div>
+{% endblock %}

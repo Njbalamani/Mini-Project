@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Email Assistant — NexaMind{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <h1 class="page-title">Email Assistant</h1>
+    <p class="page-sub mb-0">Read-only Gmail metadata, AI summaries and approval-gated drafts.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-ghost" href="{% url 'email_manager:settings' %}">{% include 'components/icon.html' with name='gear' %} Settings</a>
+    {% if integration and integration.status == 'connected' %}
+    <form method="post" action="{% url 'email_manager:fetch' %}">{% csrf_token %}
+      <button class="btn btn-gold" type="submit">{% include 'components/icon.html' with name='refresh' %} Fetch metadata</button>
+    </form>
+    {% else %}
+    <a class="btn btn-gold" href="{% url 'integrations:connect' 'gmail' %}">{% include 'components/icon.html' with name='plug' %} Connect Gmail</a>
+    {% endif %}
+  </div>
+</div>
+
+{% if not integration or integration.status != 'connected' %}
+<div class="alert alert-warning" data-animate>
+  <strong>Gmail is not connected.</strong> Connect a read-only Gmail integration to fetch message metadata. NexaMind never reads message bodies unless you enable it in settings.
+</div>
+{% endif %}
+
+<div class="two-col">
+  <div class="card gold-edge" data-animate>
+    <div class="card-head"><h3>Recent messages</h3><span class="badge">Read-only</span></div>
+    {% if messages_meta %}
+    <div class="row-list">
+      {% for m in messages_meta %}
+      <a class="row-item" href="{% url 'email_manager:detail' m.pk %}">
+        <span class="card-icon" style="width:38px;height:38px;">{% include 'components/icon.html' with name='mail' %}</span>
+        <div class="grow">
+          <div style="font-weight:600;">{{ m.subject|default:'(no subject)' }}</div>
+          <div class="small muted">{{ m.sender }} · {{ m.received_at }}</div>
+          {% if m.snippet %}<div class="small muted-2">{{ m.snippet|truncatechars:90 }}</div>{% endif %}
+        </div>
+        {% if m.category %}<span class="badge">{{ m.category }}</span>{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+      {% include 'components/empty.html' with icon='inbox' title='No messages' text='Fetch metadata from a connected Gmail account to see messages here.' %}
+    {% endif %}
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px;">
+    <div class="card" data-animate data-delay="1">
+      <div class="card-head"><h3>Drafts</h3></div>
+      {% if drafts %}
+      <div class="row-list">
+        {% for d in drafts %}
+        <a class="row-item" href="{% url 'email_manager:draft' d.pk %}">
+          <span class="card-icon" style="width:36px;height:36px;">{% include 'components/icon.html' with name='doc' %}</span>
+          <div class="grow">
+            <div style="font-weight:600;">{{ d.subject|default:'(no subject)' }}</div>
+            <div class="small muted">To: {{ d.to|default:'—' }}</div>
+          </div>
+          <span class="badge status-{{ d.status }}">{{ d.get_status_display }}</span>
+        </a>
+        {% endfor %}
+      </div>
+      {% else %}
+        <p class="small muted mb-0">No drafts yet. Generate a reply from a message to create one.</p>
+      {% endif %}
+    </div>
+
+    <div class="card" data-animate data-delay="2">
+      <div class="card-head"><h3>Categorization rules</h3></div>
+      {% if rules %}
+      <div class="chips">
+        {% for r in rules %}<span class="chip">{{ r.keyword }} → {{ r.category }}</span>{% endfor %}
+      </div>
+      {% endif %}
+      <form method="post" action="{% url 'email_manager:add_rule' %}" class="flex gap-sm wrap mt-8">
+        {% csrf_token %}
+        <input class="form-input" name="keyword" placeholder="keyword" required>
+        <input class="form-input" name="category" placeholder="Category" required>
+        <button class="btn btn-ghost btn-sm" type="submit">{% include 'components/icon.html' with name='plus' %} Add</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

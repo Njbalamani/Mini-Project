@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+{% block title %}WhatsApp — NexaMind{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <a class="small muted" href="{% url 'integrations:center' %}">← Integrations</a>
+    <h1 class="page-title" style="margin-top:6px;">{% include 'components/icon.html' with name='whatsapp' %} WhatsApp</h1>
+    <p class="page-sub mb-0">{{ integration.external_account|default:'Business line' }}</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-ghost" href="{% url 'integrations:call_room' %}">{% include 'components/icon.html' with name='video' %} Start a video call</a>
+    <form method="post" action="{% url 'integrations:disconnect' 'whatsapp' %}" data-confirm="Disconnect WhatsApp?">
+      {% csrf_token %}<button class="btn btn-danger btn-ghost" type="submit">Disconnect</button>
+    </form>
+  </div>
+</div>
+
+{% if demo %}
+<div class="alert alert-warning" data-animate>
+  <strong>Simulator mode.</strong> Messages are recorded locally and <em>not</em> sent to Meta. Reply from the other side using the signed webhook below. Clear the <code>demo</code> field under Provider credentials to send for real.
+</div>
+{% elif bridge %}
+<div class="alert alert-warning" data-animate>
+  <strong>Linked via QR bridge (unofficial).</strong> Messages go out through your linked personal number. This violates WhatsApp's Terms of Service and the number can be banned.
+</div>
+{% endif %}
+
+<div class="two-col">
+  <div class="card gold-edge" data-animate>
+    <div class="card-head"><h3>Send a message</h3></div>
+    {% if configured %}
+    <form method="post" action="{% url 'integrations:whatsapp_send' %}">
+      {% csrf_token %}
+      <div class="field">
+        <label for="to">Recipient number (with country code)</label>
+        <input class="form-input" id="to" name="to" placeholder="15551234567" autocomplete="tel" required>
+      </div>
+      <div class="field">
+        <label for="body">Message</label>
+        <textarea class="form-input" id="body" name="body" rows="4" maxlength="4096" required></textarea>
+      </div>
+      <button class="btn btn-gold" type="submit">{% include 'components/icon.html' with name='send' %} Send</button>
+    {% else %}
+      <div class="alert alert-warning">WhatsApp credentials are not configured on this server.</div>
+    {% endif %}
+  </div>
+
+  <div class="card" data-animate data-delay="1">
+    <div class="card-head"><h3>Recent messages</h3></div>
+    {% if thread %}
+    <div class="row-list">
+      {% for m in thread %}
+      <div class="row-item">
+        <div class="card-icon" style="width:38px;height:38px;">
+          {% include 'components/icon.html' with name=m.direction|yesno:'send,inbox' %}
+        </div>
+        <div class="grow">
+          <div style="font-weight:600;">{{ m.contact_name|default:m.wa_id }}
+            <span class="badge {% if m.direction == 'inbound' %}gold{% else %}green{% endif %}">{{ m.get_direction_display }}</span>
+          </div>
+          <div class="small muted">{{ m.body }}</div>
+          <div class="small muted-2">{{ m.created_at|date:'M d, H:i' }}</div>
+        </div>
+      </div>
+      {% endfor %}
+      </div>
+    {% else %}
+      {% include 'components/empty.html' with icon='inbox' title='No messages yet' text='Sends and replies will appear here.' %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

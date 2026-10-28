@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Connect WhatsApp — NexaMind{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <a class="small muted" href="{% url 'integrations:center' %}">← Integrations</a>
+    <h1 class="page-title" style="margin-top:6px;">{% include 'components/icon.html' with name='whatsapp' %} Connect WhatsApp</h1>
+    <p class="page-sub mb-0">Send and receive messages through the WhatsApp Business Cloud API.</p>
+  </div>
+</div>
+
+<div class="two-col">
+  <div class="card gold-edge" data-animate>
+    <div class="card-head"><h3>Business number</h3></div>
+    {% if configured %}
+      <p class="small muted">This server is linked to WhatsApp number
+        <strong>{{ configured_number|default:'(configured)' }}</strong>. Confirm to enable messaging on your account.</p>
+      <form method="post">
+        {% csrf_token %}
+        <div class="field">
+          <label for="number">Your WhatsApp number (optional)</label>
+          <input class="form-input" id="number" name="number" placeholder="{{ configured_number }}" autocomplete="tel">
+        </div>
+        <button class="btn btn-gold" type="submit">Enable WhatsApp</button>
+      </form>
+    {% else %}
+      <div class="alert alert-warning">Not configured yet. An administrator can add the WhatsApp
+        token and phone number id under <a href="{% url 'integrations:center' %}">Integrations</a> →
+        {% if request.user.is_staff %}<a href="{% url 'integrations:provider_credentials' %}">Provider credentials</a>{% else %}Provider credentials{% endif %}.</div>
+      <a class="btn btn-ghost" href="{% url 'integrations:center' %}">Back</a>
+    {% endif %}
+  </div>
+
+  <div class="card" data-animate data-delay="1">
+    <div class="card-head"><h3>What you get</h3></div>
+    <ul class="list-check">
+      <li>Send text messages to any WhatsApp number.</li>
+      <li>Receive replies through a signed webhook (HMAC verified).</li>
+      <li>The Cloud API token stays on the server and is never sent to the browser.</li>
+      <li><strong>Video calls are not part of WhatsApp's API.</strong> Use the built-in camera calling feature instead.</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

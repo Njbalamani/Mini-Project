@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}Executions — NexaMind{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <h1 class="page-title">Workflow executions</h1>
+    <p class="page-sub mb-0">Full history of automated runs.</p>
+  </div>
+  <form method="get" class="flex gap-sm">
+    <select class="form-input" name="status" onchange="this.form.submit()">
+      <option value="">All statuses</option>
+      {% for value, label in statuses %}
+        <option value="{{ value }}" {% if current_status == value %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+    <button class="btn btn-ghost" type="submit">Filter</button>
+  </form>
+</div>
+
+<div class="card" data-animate>
+  {% if page_obj.object_list %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Workflow</th><th>Started</th><th>Reason</th><th>Status</th><th>Duration</th><th></th></tr></thead>
+      <tbody>
+        {% for ex in page_obj %}
+        <tr>
+          <td><a href="{% url 'workflow_automation:detail' ex.workflow.pk %}">{{ ex.workflow.name }}</a></td>
+          <td>{{ ex.started_at|date:'M d, H:i' }}</td>
+          <td>{{ ex.trigger_reason|default:'—' }}</td>
+          <td><span class="badge status-{{ ex.status }}">{{ ex.get_status_display }}</span></td>
+          <td>{% if ex.duration_seconds %}{{ ex.duration_seconds }}s{% else %}—{% endif %}</td>
+          <td><a class="small" href="{% url 'workflow_automation:execution' ex.pk %}">Detail</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% include 'components/pagination.html' with page_obj=page_obj %}
+  {% else %}
+    {% include 'components/empty.html' with icon='clock' title='No executions' text='Run a workflow to see execution history here.' %}
+  {% endif %}
+</div>
+{% endblock %}

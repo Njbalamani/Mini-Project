@@ -1,0 +1,25 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Page not found — NexaMind</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+</head>
+<body>
+  <div class="bg-orbs" aria-hidden="true"><div class="orb orb-1"></div><div class="orb orb-2"></div><div class="orb orb-3"></div></div>
+  <main style="min-height:100vh;display:grid;place-items:center;padding:40px 22px;">
+    <div class="card" style="max-width:520px;text-align:center;" data-animate>
+      <div class="brand-mark" style="margin:0 auto 14px;">NM</div>
+      <div class="grad-text" style="font-family:var(--font-display);font-size:4rem;font-weight:700;line-height:1;">404</div>
+      <h1 style="font-family:var(--font-display);margin:.4em 0;">This page has vanished</h1>
+      <p class="muted">The page you are looking for could not be found. It may have been moved or deleted.</p>
+      <div class="flex gap-sm" style="justify-content:center;margin-top:18px;">
+        <a class="btn btn-gold" href="/">Return home</a>
+        <a class="btn btn-ghost" href="/app/">Dashboard</a>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

@@ -1,0 +1,7 @@
+Hi {{ user.display_name }},
+
+Welcome to NexaMind. Please confirm your email address by opening the link below:
+
+{{ link }}
+
+This link expires in 48 hours. If you did not create a NexaMind account, you can safely ignore this email.

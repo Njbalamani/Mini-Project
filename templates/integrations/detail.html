@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}{{ spec.label|default:provider }} — Integration{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <a class="small muted" href="{% url 'integrations:center' %}">← All integrations</a>
+    <h1 class="page-title" style="margin-top:6px;">{{ spec.label|default:provider|title }}</h1>
+    <p class="page-sub mb-0">Connection details and stored metadata.</p>
+  </div>
+  {% if integration.status == 'connected' %}
+  <form method="post" action="{% url 'integrations:sync' provider %}">{% csrf_token %}
+    <button class="btn btn-gold" type="submit">{% include 'components/icon.html' with name='refresh' %} Sync now</button>
+  </form>
+  {% endif %}
+</div>
+
+<div class="two-col">
+  <div class="card gold-edge" data-animate>
+    <div class="card-head"><h3>Status</h3>
+      {% if integration %}
+        {% if integration.status == 'connected' %}<span class="badge green"><span class="dot"></span>Connected</span>
+        {% elif integration.status == 'error' %}<span class="badge red">Error</span>
+        {% else %}<span class="badge">{{ integration.get_status_display }}</span>{% endif %}
+      {% endif %}
+    </div>
+    {% if integration %}
+    <dl class="kv">
+      <dt>Provider</dt><dd>{{ integration.get_provider_display }}</dd>
+      <dt>Account</dt><dd>{{ integration.external_account|default:'—' }}</dd>
+      <dt>Scopes</dt><dd>{% for s in integration.scopes %}<code>{{ s }}</code> {% endfor %}</dd>
+      <dt>Last synced</dt><dd>{% if integration.last_synced_at %}{{ integration.last_synced_at|date:'M d, Y H:i' }}{% else %}Never{% endif %}</dd>
+      <dt>Connected since</dt><dd>{{ integration.created_at|date:'M d, Y' }}</dd>
+    </dl>
+    {% if integration.status == 'connected' %}
+    <form method="post" action="{% url 'integrations:disconnect' provider %}" data-confirm="Disconnect and remove stored tokens?">
+      {% csrf_token %}
+      <button class="btn btn-danger btn-sm" type="submit">Disconnect integration</button>
+    </form>
+    {% endif %}
+    {% else %}
+      <p class="muted">This integration is not connected yet.</p>
+      <a class="btn btn-gold" href="{% url 'integrations:connect' provider %}">Connect</a>
+    {% endif %}
+  </div>
+
+  <div class="card" data-animate data-delay="1">
+    <div class="card-head"><h3>Security</h3></div>
+    <ul class="list-check">
+      <li>OAuth access and refresh tokens are encrypted with Fernet before storage.</li>
+      <li>NexaMind requests read-only scopes by default.</li>
+      <li>Outbound email requires your explicit, per-message approval.</li>
+      <li>Every connect, sync and disconnect action is written to your audit log.</li>
+    </ul>
+  </div>
+</div>
+{% endblock %}

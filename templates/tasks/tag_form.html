@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Edit tag — Tasks{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <a class="small muted" href="{% url 'tasks:tags' %}">← Back to tags</a>
+    <h1 class="page-title" style="margin-top:6px;">Edit tag</h1>
+  </div>
+</div>
+
+<div class="card gold-edge" style="max-width:520px;" data-animate>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="field {% if form.name.errors %}is-invalid{% endif %}">
+      <label for="{{ form.name.id_for_label }}">Name</label>
+      {{ form.name }}
+      {% for e in form.name.errors %}<span class="error">{{ e }}</span>{% endfor %}
+    </div>
+    <div class="field {% if form.color.errors %}is-invalid{% endif %}">
+      <label for="{{ form.color.id_for_label }}">Colour</label>
+      {{ form.color }}
+      {% for e in form.color.errors %}<span class="error">{{ e }}</span>{% endfor %}
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-gold" type="submit">Save changes</button>
+      <a class="btn btn-ghost" href="{% url 'tasks:tags' %}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

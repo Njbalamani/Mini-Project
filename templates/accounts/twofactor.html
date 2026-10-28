@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Two-factor authentication — NexaMind{% endblock %}
+{% block content %}
+<h1 class="page-title">Security</h1>
+<p class="page-sub">Protect your account with an authenticator app.</p>
+{% include 'accounts/_settings_nav.html' %}
+
+<div class="card gold-edge" style="max-width:640px;" data-animate>
+  <div class="flex-between">
+    <div>
+      <h2 style="margin:0 0 4px;">Two-factor authentication</h2>
+      <p class="small muted mb-0" style="margin:0;">
+        {% if profile.totp_enabled %}Enabled — a code from your authenticator app is required at sign-in.
+        {% else %}Not enabled — add a second step to keep your account safe.{% endif %}
+      </p>
+    </div>
+    {% if profile.totp_enabled %}
+      <span class="badge status-done">On</span>
+    {% else %}
+      <span class="badge status-todo">Off</span>
+    {% endif %}
+  </div>
+
+  <div class="divider"></div>
+
+  {% if profile.totp_enabled %}
+    <div class="kv">
+      <dt>Enabled</dt><dd>{{ profile.totp_confirmed_at|date:'M d, Y H:i'|default:'—' }}</dd>
+      <dt>Backup codes</span></dt><dd>Keep your recovery codes somewhere safe.</dd>
+    </div>
+    <div class="page-actions">
+      <a class="btn btn-ghost" href="{% url 'accounts:twofactor_backup_codes' %}">{% include 'components/icon.html' with name='refresh' %} Regenerate backup codes</a>
+      <a class="btn btn-ghost danger" href="{% url 'accounts:twofactor_disable' %}">Disable 2FA</a>
+    </div>
+  {% else %}
+    <p class="small muted">You'll need an authenticator app such as 1Password, Authy, Google Authenticator, or Authy.</p>
+    <a class="btn btn-gold" href="{% url 'accounts:twofactor_setup' %}">{% include 'components/icon.html' with name='shield' %} Enable two-factor</a>
+  {% endif %}
+</div>
+{% endblock %}

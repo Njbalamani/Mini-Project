@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Activity — {{ task.title }}{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <a class="small muted" href="{% url 'tasks:detail' task.pk %}">← Back to task</a>
+    <h1 class="page-title" style="margin-top:6px;">Activity history</h1>
+    <p class="page-sub mb-0">{{ task.title }}</p>
+  </div>
+</div>
+
+<div class="card" data-animate>
+  {% if activity %}
+  <div class="timeline">
+    {% for act in activity %}
+    <div class="t-item">
+      <div class="t-time">{{ act.created_at|date:'M d, Y H:i' }}</div>
+      <div class="t-title">{{ act.get_action_display }}</div>
+      <div class="small muted">
+        {% if act.actor %}by {{ act.actor.display_name }}{% endif %}
+        {% if act.detail %}· {{ act.detail }}{% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+    {% include 'components/empty.html' with icon='clock' title='No activity yet' text='Changes to this task will be recorded here.' %}
+  {% endif %}
+</div>
+{% endblock %}

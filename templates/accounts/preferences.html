@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block title %}Preferences — NexaMind{% endblock %}
+{% block content %}
+<h1 class="page-title">Notification preferences</h1>
+<p class="page-sub">Choose how NexaMind keeps you informed.</p>
+
+<div class="card" style="max-width:720px;" data-animate>
+  <form method="post">
+    {% csrf_token %}
+    <div class="form-grid">
+      {% for field in form %}
+      <div class="flex-between" style="padding:10px 0;border-bottom:1px solid var(--border-soft);">
+        <div>
+          <div style="font-weight:600;font-size:.92rem;">{{ field.label }}</div>
+          <div class="small muted">{{ field.help_text }}</div>
+        </div>
+        <label class="switch">{{ field }}<span class="slider"></span></label>
+      </div>
+      {% endfor %}
+      <button class="btn btn-gold" type="submit" style="justify-self:start;">Save preferences</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

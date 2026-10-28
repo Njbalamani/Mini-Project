@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}{% if mode == 'edit' %}Edit workflow{% else %}New workflow{% endif %} — NexaMind{% endblock %}
+{% block content %}
+<h1 class="page-title">{% if mode == 'edit' %}Edit workflow{% else %}Create a workflow{% endif %}</h1>
+<p class="page-sub">Workflows use a fixed catalogue of triggers, conditions and actions — no arbitrary code.</p>
+
+<div class="card gold-edge" style="max-width:680px;" data-animate>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="form-grid">
+      {% if form.non_field_errors %}<div class="alert alert-error">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="field {% if form.name.errors %}is-invalid{% endif %}">
+        <label for="{{ form.name.id_for_label }}">Name</label>{{ form.name }}
+        {% for e in form.name.errors %}<span class="error">{{ e }}</span>{% endfor %}
+      </div>
+      <div class="field"><label for="{{ form.description.id_for_label }}">Description</label>{{ form.description }}</div>
+
+      <div class="two-col">
+        <div class="field"><label for="{{ form.trigger_type.id_for_label }}">Trigger</label>{{ form.trigger_type }}</div>
+        <div class="field {% if form.schedule_time.errors %}is-invalid{% endif %}">
+          <label for="{{ form.schedule_time.id_for_label }}">Schedule time</label>{{ form.schedule_time }}
+          {% for e in form.schedule_time.errors %}<span class="error">{{ e }}</span>{% endfor %}
+        </div>
+      </div>
+      <div class="field"><label for="{{ form.condition_type.id_for_label }}">Condition</label>{{ form.condition_type }}</div>
+      <div class="field"><label for="{{ form.action_type.id_for_label }}">Action</label>{{ form.action_type }}</div>
+      <div class="two-col">
+        <div class="field {% if form.action_title.errors %}is-invalid{% endif %}">
+          <label for="{{ form.action_title.id_for_label }}">Follow-up task title</label>{{ form.action_title }}
+          {% for e in form.action_title.errors %}<span class="error">{{ e }}</span>{% endfor %}
+        </div>
+        <div class="field"><label for="{{ form.action_priority.id_for_label }}">Task priority</label>{{ form.action_priority }}</div>
+      </div>
+      <div class="field"><label class="switch-label">Enable now {{ form.is_enabled }}</label></div>
+
+      <div class="flex gap-sm">
+        <button class="btn btn-gold" type="submit">{% if mode == 'edit' %}Save changes{% else %}Create workflow{% endif %}</button>
+        <a class="btn btn-ghost" href="{% if mode == 'edit' %}{% url 'workflow_automation:detail' workflow.pk %}{% else %}{% url 'workflow_automation:list' %}{% endif %}">Cancel</a>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

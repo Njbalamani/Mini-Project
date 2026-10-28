@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Execution — NexaMind{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <a class="small muted" href="{% url 'workflow_automation:executions' %}">← All executions</a>
+    <h1 class="page-title" style="margin-top:6px;">Execution #{{ execution.pk }}</h1>
+    <div class="flex wrap gap-sm" style="margin-top:8px;">
+      <span class="badge status-{{ execution.status }}">{{ execution.get_status_display }}</span>
+      <span class="badge">{{ execution.workflow.name }}</span>
+      {% if execution.duration_seconds %}<span class="badge">{{ execution.duration_seconds }}s</span>{% endif %}
+    </div>
+  </div>
+</div>
+
+<div class="two-col">
+  <div class="card gold-edge" data-animate>
+    <div class="card-head"><h3>Summary</h3></div>
+    <dl class="kv">
+      <dt>Workflow</dt><dd><a href="{% url 'workflow_automation:detail' execution.workflow.pk %}">{{ execution.workflow.name }}</a></dd>
+      <dt>Started</dt><dd>{{ execution.started_at|date:'M d, Y H:i:s' }}</dd>
+      <dt>Finished</dt><dd>{% if execution.finished_at %}{{ execution.finished_at|date:'M d, Y H:i:s' }}{% else %}—{% endif %}</dd>
+      <dt>Reason</dt><dd>{{ execution.trigger_reason|default:'—' }}</dd>
+      <dt>Idempotency key</dt><dd class="small">{{ execution.idempotency_key|default:'—' }}</dd>
+    </dl>
+    {% if execution.error %}<div class="alert alert-error">{{ execution.error }}</div>{% endif %}
+  </div>
+
+  <div class="card" data-animate data-delay="1">
+    <div class="card-head"><h3>Steps</h3></div>
+    {% if execution.steps.all %}
+    <div class="timeline">
+      {% for step in execution.steps.all %}
+      <div class="t-item">
+        <div class="t-time">Step {{ step.order }} · {{ step.status }}</div>
+        <div class="t-title">{{ step.step_name }}</div>
+        {% if step.detail %}<div class="small muted">{{ step.detail }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+      <p class="small muted mb-0">No step detail recorded.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

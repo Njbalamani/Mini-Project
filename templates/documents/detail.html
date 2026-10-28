@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}{{ document.title }} — Document{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <a class="small muted" href="{% url 'documents:list' %}">← Back to documents</a>
+    <h1 class="page-title" style="margin-top:6px;">{{ document.title }}</h1>
+    <div class="flex wrap gap-sm" style="margin-top:8px;">
+      <span class="badge status-{{ document.status }}">{{ document.get_status_display }}</span>
+      <span class="badge">{{ document.size_kb }} KB</span>
+      {% if document.page_count %}<span class="badge">{{ document.page_count }} pages</span>{% endif %}
+    </div>
+  </div>
+  <div class="page-actions">
+    <form method="post" action="{% url 'documents:reprocess' document.pk %}">{% csrf_token %}
+      <button class="btn btn-ghost" type="submit">{% include 'components/icon.html' with name='refresh' %} Reprocess</button>
+    </form>
+    <a class="btn btn-danger btn-ghost" href="{% url 'documents:delete' document.pk %}">{% include 'components/icon.html' with name='trash' %} Delete</a>
+  </div>
+</div>
+
+{% if document.status == 'failed' %}
+<div class="alert alert-error" data-animate>Processing failed: {{ document.error }}</div>
+{% elif not document.is_ready %}
+<div class="alert alert-info" data-animate>This document is still {{ document.get_status_display|lower }}.</div>
+{% endif %}
+
+<div class="two-col">
+  <div class="card gold-edge" data-animate>
+    <div class="card-head"><h3>AI analysis</h3></div>
+    <form method="post" action="{% url 'documents:analyze' document.pk %}" class="flex gap-sm wrap mb-16">
+      {% csrf_token %}
+      <button class="btn btn-gold btn-sm" type="submit" name="kind" value="summary" {% if not document.is_ready %}disabled{% endif %}>{% include 'components/icon.html' with name='spark' %} Summarize</button>
+      <button class="btn btn-ghost btn-sm" type="submit" name="kind" value="action_items" {% if not document.is_ready %}disabled{% endif %}>Action items</button>
+      <button class="btn btn-ghost btn-sm" type="submit" name="kind" value="dates" {% if not document.is_ready %}disabled{% endif %}>Dates</button>
+    </form>
+
+    <form method="post" action="{% url 'documents:ask' document.pk %}" class="flex gap-sm mb-16">
+      {% csrf_token %}
+      {{ question_form.question }}
+      <button class="btn btn-gold btn-sm" type="submit" {% if not document.is_ready %}disabled{% endif %}>Ask</button>
+    </form>
+
+    {% if analyses %}
+      {% for a in analyses %}
+      <div class="analysis">
+        <div class="flex-between">
+          <strong class="gold">{{ a.get_kind_display }}{% if a.question %} · “{{ a.question }}”{% endif %}</strong>
+          <form method="post" action="{% url 'documents:analysis_delete' a.pk %}">{% csrf_token %}
+            <button class="icon-btn sm danger" type="submit" title="Remove">{% include 'components/icon.html' with name='x' %}</button>
+          </form>
+        </div>
+        <p style="white-space:pre-line;">{{ a.result }}</p>
+        {% if a.evidence %}<div class="small muted-2">Evidence: {{ a.evidence|join:', ' }}</div>{% endif %}
+      </div>
+      {% endfor %}
+    {% else %}
+      <p class="small muted mb-0">No analyses yet. Run a summary or ask a question.</p>
+    {% endif %}
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px;">
+    {% if keywords %}
+    <div class="card" data-animate data-delay="1">
+      <div class="card-head"><h3>Keywords</h3><span class="badge">Extracted</span></div>
+      <div class="chips">{% for kw in keywords %}<span class="chip">{{ kw }}</span>{% endfor %}</div>
+    </div>
+    {% endif %}
+    {% if dates %}
+    <div class="card" data-animate data-delay="2">
+      <div class="card-head"><h3>Important dates</h3></div>
+      <ul class="list-check">{% for d in dates %}<li>{{ d }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+    {% if action_items %}
+    <div class="card" data-animate data-delay="3">
+      <div class="card-head"><h3>Action items</h3></div>
+      <ul class="list-check">{% for item in action_items %}<li>{{ item }}</li>{% endfor %}</ul>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+{% if document.extracted_text %}
+<div class="card mt-24" data-animate>
+  <div class="card-head"><h3>Extracted text</h3></div>
+  <pre class="doc-text">{{ document.extracted_text|truncatechars:4000 }}</pre>
+</div>
+{% endif %}
+{% endblock %}

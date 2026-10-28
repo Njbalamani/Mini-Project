@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Delete event — NexaMind{% endblock %}
+{% block content %}
+<div class="card" style="max-width:520px;margin:40px auto;text-align:center;" data-animate>
+  <h2>Delete this event?</h2>
+  <p class="muted">“{{ event.title }}” scheduled for {{ event.start|date:'M d, Y H:i' }} will be removed.</p>
+  <form method="post" class="flex gap-sm" style="justify-content:center;">
+    {% csrf_token %}
+    <button class="btn btn-danger" type="submit">Yes, delete</button>
+    <a class="btn btn-ghost" href="{% url 'calendar_manager:detail' event.pk %}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

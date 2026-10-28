@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}Free slots — NexaMind{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <a class="small muted" href="{% url 'calendar_manager:calendar' %}">← Back to calendar</a>
+    <h1 class="page-title" style="margin-top:6px;">Free slots</h1>
+    <p class="page-sub mb-0">{{ day|date:'D, M d Y' }}</p>
+  </div>
+  <form method="get" class="flex gap-sm" data-animate>
+    <input class="form-input" type="date" name="date" value="{{ day|date:'Y-m-d' }}">
+    <button class="btn btn-gold" type="submit">Find slots</button>
+  </form>
+</div>
+
+<div class="card" data-animate>
+  {% if slots %}
+    <div class="slot-grid">
+      {% for s in slots %}
+      <div class="slot">
+        <span class="slot-time">{{ s.start|date:'H:i' }} – {{ s.end|date:'H:i' }}</span>
+        <span class="small muted">{{ s.minutes }} min free</span>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    {% include 'components/empty.html' with icon='clock' title='No free slots' text='Your day looks fully booked — or there are no working hours left.' %}
+  {% endif %}
+</div>
+{% endblock %}

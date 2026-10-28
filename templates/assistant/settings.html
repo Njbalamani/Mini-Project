@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% block title %}AI settings — NexaMind{% endblock %}
+{% block content %}
+<h1 class="page-title">AI provider settings</h1>
+<p class="page-sub">Choose the provider NexaMind should use. NexaMind never fabricates answers: with no provider, it will clearly tell you it is not configured.</p>
+
+<div class="alert {% if provider.configured %}alert-info{% else %}alert-warning{% endif %}" data-animate>
+  <strong>Current status:</strong>
+  {% if provider.configured %}Connected to <strong>{{ provider.name }}</strong>.{% else %}No AI provider configured.{% endif %}
+</div>
+
+<div class="two-col">
+  <div class="card gold-edge" data-animate>
+    <div class="card-head"><h3>Preferences</h3></div>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="field"><label for="{{ form.provider.id_for_label }}">Provider</label>{{ form.provider }}
+          <div class="help">“Environment default” uses the server configuration. “Local ML” runs an offline NLP/ML engine (TF-IDF retrieval + Naive Bayes) with no API key. “Offline demo” is a clearly-labelled non-AI demo that must be opted into.</div>
+        </div>
+        <div class="field"><label for="{{ form.model.id_for_label }}">Model</label>{{ form.model }}
+          <div class="help">Optional. Leave blank to use the provider default.</div>
+        </div>
+        <div class="field"><label for="{{ form.temperature.id_for_label }}">Temperature</label>{{ form.temperature }}
+          {% for e in form.temperature.errors %}<span class="error">{{ e }}</span>{% endfor %}
+        </div>
+        <div class="field"><label for="{{ form.system_prompt.id_for_label }}">Custom system instructions</label>{{ form.system_prompt }}</div>
+        <button class="btn btn-gold" type="submit">Save preferences</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card" data-animate data-delay="1">
+    <div class="card-head"><h3>How to connect a real provider</h3></div>
+    <ol class="steps-text">
+      <li>Set <code>NEXAMIND_AI_PROVIDER</code> to <code>openai</code> or <code>gemini</code>.</li>
+      <li>Add your <code>NEXAMIND_AI_API_KEY</code> to the environment.</li>
+      <li>Optionally set <code>NEXAMIND_AI_MODEL</code>.</li>
+      <li>Restart the server. NexaMind reads keys only from the server environment — never from the browser.</li>
+    </ol>
+    <p class="small muted mb-0">API keys entered here are not stored. Everything runs server-side.</p>
+  </div>
+</div>
+{% endblock %}

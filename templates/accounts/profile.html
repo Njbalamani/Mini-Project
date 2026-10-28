@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}Profile — NexaMind{% endblock %}
+{% block content %}
+<h1 class="page-title">Profile &amp; security</h1>
+<p class="page-sub">Manage your identity, photo and account security.</p>
+
+<div class="metric-grid mb-24" style="grid-template-columns:repeat(auto-fit,minmax(180px,1fr));">
+  <div class="card stat-card" data-animate><div class="stat-label">Plan</div><div class="stat-value">{{ current_plan.name|default:'Free' }}</div><div class="stat-delta">{% if current_plan.is_premium %}Premium{% else %}Core{% endif %}</div></div>
+  <div class="card stat-card" data-animate data-delay="1"><div class="stat-label">Email verified</div><div class="stat-value">{% if user.is_email_verified %}<span class="gold">✓</span>{% else %}<span class="muted">—</span>{% endif %}</div><div class="stat-delta">{% if user.is_email_verified %}Confirmed{% else %}Pending{% endif %}</div></div>
+  <div class="card stat-card" data-animate data-delay="2"><div class="stat-label">Member since</div><div class="stat-value">{{ user.date_joined|date:'M Y' }}</div><div class="stat-delta">{{ user.date_joined|timesince }} ago</div></div>
+  <div class="card stat-card" data-animate data-delay="3"><div class="stat-label">Role</div><div class="stat-value">{% if user.is_superuser %}Admin{% else %}Member{% endif %}</div><div class="stat-delta">{{ user.email }}</div></div>
+</div>
+
+<div class="two-col">
+  <div class="card gold-edge" data-animate>
+    <div class="card-head"><h3>Profile details</h3></div>
+    <form method="post" enctype="multipart/form-data" novalidate>
+      {% csrf_token %}
+      <div class="form-grid">
+        <div class="flex" style="gap:16px;">
+          {% if profile.avatar %}
+            <img src="{{ profile.avatar.url }}" alt="Avatar" style="width:76px;height:76px;border-radius:50%;object-fit:cover;border:2px solid var(--gold);">
+          {% else %}
+            <span class="avatar" style="width:76px;height:76px;font-size:1.7rem;">{{ user.initials }}</span>
+          {% endif %}
+          <div class="grow">
+            <label class="small" for="id_full_name">Full name</label>
+            {{ form.full_name }}
+          </div>
+        </div>
+        <div class="field">
+          <label class="small" for="{{ form.avatar.id_for_label }}">Profile photo</label>
+          {{ form.avatar }}
+        </div>
+        <div class="field">
+          <label class="small" for="{{ form.bio.id_for_label }}">Bio</label>
+          {{ form.bio }}
+        </div>
+        <div class="two-col">
+          <div class="field"><label class="small" for="{{ form.job_title.id_for_label }}">Job title</label>{{ form.job_title }}</div>
+          <div class="field"><label class="small" for="{{ form.company.id_for_label }}">Company</label>{{ form.company }}</div>
+        </div>
+        <div class="two-col">
+          <div class="field"><label class="small" for="{{ form.timezone.id_for_label }}">Timezone</label>{{ form.timezone }}</div>
+          <div class="field"><label class="small" for="{{ form.language.id_for_label }}">Language</label>{{ form.language }}</div>
+        </div>
+        <div class="field">
+          <label class="small" for="{{ form.theme.id_for_label }}">Theme</label>
+          {{ form.theme }}
+        </div>
+        <button class="btn btn-gold" type="submit">Save profile</button>
+      </div>
+    </form>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px;">
+    <div class="card" data-animate data-delay="1">
+      <div class="card-head"><h3>Password</h3><a class="btn btn-ghost btn-sm" href="{% url 'accounts:change_password' %}">Change password</a></div>
+      <p class="muted small mb-0">Use a strong, unique password. NexaMind enforces Django's password validators on every change.</p>
+    </div>
+    <div class="card" data-animate data-delay="2">
+      <div class="card-head"><h3>Account activity</h3><a class="btn btn-ghost btn-sm" href="{% url 'accounts:activity' %}">View history</a></div>
+      <p class="muted small mb-0">Sign-ins and failed attempts are recorded and shown in your activity log.</p>
+    </div>
+    <div class="card" data-animate data-delay="3" style="border-color:rgba(248,113,113,.35);">
+      <div class="card-head"><h3>Danger zone</h3></div>
+      <p class="muted small">Deleting your account permanently removes all tasks, conversations, documents and settings.</p>
+      <form method="post" action="{% url 'accounts:delete_account' %}" data-confirm="This permanently deletes your account and all data. Continue?">
+        {% csrf_token %}
+        <button class="btn btn-danger btn-sm" type="submit">Delete my account</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

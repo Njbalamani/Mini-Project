@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% load static ai_tags %}
+{% block title %}{{ conversation.title }} — Assistant{% endblock %}
+{% block head %}<script src="{% static 'js/assistant.js' %}"></script>{% endblock %}
+
+{% block content %}
+<div class="chat-layout">
+  <aside class="chat-aside card" data-animate>
+    <form method="post" action="{% url 'ai_assistant:new_conversation' %}">
+      {% csrf_token %}
+      <button class="btn btn-gold btn-block" type="submit">{% include 'components/icon.html' with name='plus' %} New chat</button>
+    </form>
+    <div class="row-list mt-16">
+      {% for c in conversations %}
+      <a class="row-item {% if c.pk == conversation.pk %}active{% endif %}" href="{% url 'ai_assistant:conversation' c.pk %}">
+        <span class="card-icon" style="width:32px;height:32px;">{% include 'components/icon.html' with name='spark' %}</span>
+        <div class="grow"><div class="small" style="font-weight:600;">{{ c.title|truncatechars:28 }}</div></div>
+      </a>
+      {% empty %}
+      <p class="small muted">No conversations yet.</p>
+      {% endfor %}
+    </div>
+  </aside>
+
+  <section class="chat-main card gold-edge">
+    <div class="chat-head">
+      <div class="grow">
+        <h2 class="mb-0" style="font-size:1.1rem;">{{ conversation.title }}</h2>
+        <span class="small muted">
+          {% if provider.configured %}Provider: {{ provider.name }}{% else %}No AI provider configured{% endif %}
+          · {{ messages.count }} message{{ messages.count|pluralize }}
+        </span>
+      </div>
+      <a class="icon-btn" href="{% url 'ai_assistant:export' conversation.pk %}?format=txt" title="Export text">{% include 'components/icon.html' with name='download' %}</a>
+      <a class="icon-btn" href="{% url 'ai_assistant:export' conversation.pk %}?format=csv" title="Export CSV">{% include 'components/icon.html' with name='doc' %}</a>
+      <form method="post" action="{% url 'ai_assistant:delete_conversation' conversation.pk %}" data-confirm="Delete this conversation permanently?">
+        {% csrf_token %}
+        <button class="icon-btn danger" type="submit" title="Delete">{% include 'components/icon.html' with name='trash' %}</button>
+      </form>
+    </div>
+
+    <div class="chat-messages" id="chat-messages">
+      {% for msg in messages %}
+        {% if msg.role != 'system' %}
+        <div class="msg {{ msg.role }}">
+          <div class="bubble">{{ msg.content }}</div>
+          <div class="meta">{{ msg.created_at|date:'H:i' }}</div>
+          {% if msg.role == 'assistant' and msg.structured.actions %}
+          <div class="chip-actions">
+            {% for action in msg.structured.actions %}
+            <button type="button" class="chip history-action" data-action='{{ action|jsonify|escape }}'>
+              {% include 'components/icon.html' with name=action.type|action_icon %} {{ action.type|action_label }}
+            </button>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% if msg.role == 'assistant' and msg.structured.link %}
+          <div class="chip-actions">
+            <a class="chip" href="{{ msg.structured.link.url }}">{{ msg.structured.link.label }}</a>
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      {% empty %}
+        <div class="chat-empty">
+          <div class="card-icon" style="width:52px;height:52px;margin:0 auto 12px;">{% include 'components/icon.html' with name='spark' %}</div>
+          <h3>Ask NexaMind anything</h3>
+          <p class="muted">Try: “Create a high priority task to review the quarterly report due Friday.”</p>
+        </div>
+      {% endfor %}
+    </div>
+
+    <form id="chat-form"
+          data-send-url="{% url 'ai_assistant:send_message' conversation.pk %}"
+          data-action-url="{% url 'ai_assistant:execute_action' %}">
+      {% csrf_token %}
+      <div class="chat-input-row">
+        <textarea id="chat-input" rows="1" placeholder="Message NexaMind… (Enter to send, Shift+Enter for newline)"></textarea>
+        <button class="btn btn-gold" type="submit" aria-label="Send">{% include 'components/icon.html' with name='send' %}</button>
+      </div>
+      <div class="chat-hint">
+        <a id="ai-config-btn" class="small" href="{% url 'ai_assistant:settings' %}" style="{% if provider.configured %}display:none;{% endif %}">Configure AI provider →</a>
+        <span class="small muted-2">Try <code>/task</code>, <code>/event</code>, <code>/email</code>, <code>/summarize</code> — or type <code>/help</code>.</span>
+      </div>
+    </form>
+  </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var actionUrl = "{% url 'ai_assistant:execute_action' %}";
+    document.querySelectorAll(".history-action").forEach(function (chip) {
+      chip.addEventListener("click", function () {
+        chip.disabled = true;
+        var action;
+        try { action = JSON.parse(chip.getAttribute("data-action")); }
+        catch (e) { return; }
+        nmFetch(actionUrl, { method: "POST", body: { action: action } })
+          .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+          .then(function (res) {
+            if (res.ok && res.j.ok) {
+              chip.classList.add("ok");
+              chip.textContent = res.j.label;
+              if (res.j.url) {
+                var go = document.createElement("a");
+                go.className = "chip"; go.href = res.j.url; go.textContent = "Open";
+                chip.parentNode.appendChild(go);
+              }
+              nmToast(res.j.label, "success");
+            } else {
+              chip.disabled = false;
+              nmToast((res.j && res.j.error) || "Action failed", "error");
+            }
+          });
+      });
+    });
+    var stream = document.getElementById("chat-messages");
+    if (stream) stream.scrollTop = stream.scrollHeight;
+  });
+</script>
+{% endblock %}

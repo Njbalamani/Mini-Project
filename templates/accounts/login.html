@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sign in — NexaMind{% endblock %}
+{% block body_class %}{% endblock %}
+
+{% block public %}
+<div class="login-layout">
+  <aside class="login-side">
+    <a class="brand" href="/" style="border:0;margin:0;padding:0;">
+      <span class="brand-mark">NM</span>
+    </a>
+    <div class="login-quote grad-text" data-animate>
+      "Turn your lists, calendars and inbox into a single, intelligent stream of action."
+    </div>
+    <div class="muted small" data-animate data-delay="1">NexaMind · AI personal assistant &amp; automation platform</div>
+  </aside>
+
+  <div style="display:grid;place-items:center;padding:40px 22px;">
+    <div class="card" style="width:min(430px,100%);" data-animate>
+      <div class="center mb-16">
+        <h2 class="grad-text" style="margin:0;">Welcome back</h2>
+        <p class="muted small" style="margin:8px 0 0;">Sign in to your intelligent workspace</p>
+      </div>
+
+      {% if messages %}
+        {% for m in messages %}<div class="alert alert-{% if m.tags %}{{ m.tags }}{% else %}info{% endif %}">{{ m }}</div>{% endfor %}
+      {% endif %}
+
+      {% if request.GET.expired %}
+        <div class="alert alert-warning">Your session expired. Please sign in again.</div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="form-grid">
+          {% if form.non_field_errors %}
+            <div class="alert alert-error">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>
+          {% endif %}
+          <div class="field {% if form.username.errors %}is-invalid{% endif %}">
+            <label for="{{ form.username.id_for_label }}">Email address</label>
+            {{ form.username }}
+            {% for e in form.username.errors %}<span class="error">{{ e }}</span>{% endfor %}
+          </div>
+          <div class="field {% if form.password.errors %}is-invalid{% endif %}">
+            <label for="{{ form.password.id_for_label }}">Password</label>
+            {{ form.password }}
+            {% for e in form.password.errors %}<span class="error">{{ e }}</span>{% endfor %}
+          </div>
+          <div class="flex-between wrap">
+            <label class="check-row" style="margin:0;"><input type="checkbox" name="remember" checked> Remember me</label>
+            <a class="small" href="{% url 'accounts:password_reset' %}">Forgot password?</a>
+          </div>
+          <button class="btn btn-gold btn-lg btn-block" type="submit">Sign in</button>
+          <p class="center small muted" style="margin:0;">New to NexaMind?
+            <a href="{% url 'accounts:register' %}">Create a free account</a>
+          </p>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

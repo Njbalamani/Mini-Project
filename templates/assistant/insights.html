@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}ML insights — NexaMind{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <h1 class="page-title">ML insights</h1>
+    <p class="page-sub mb-0">
+      {% if provider.configured %}Active engine: <strong class="gold">{{ provider.name }}</strong>{% else %}Not connected{% endif %}
+      · offline, no API key
+    </p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-ghost" href="{% url 'ai_assistant:settings' %}">{% include 'components/icon.html' with name='gear' %} AI settings</a>
+    <a class="btn btn-gold" href="{% url 'ai_assistant:home' %}">{% include 'components/icon.html' with name='spark' %} Back to chat</a>
+  </div>
+</div>
+
+<div class="two-col">
+  <div class="card gold-edge" data-animate>
+    <div class="card-head"><h3>Learning status</h3></div>
+    <div class="form-grid">
+      <div><div class="small muted">Training examples</div><div style="font-size:1.6rem;font-weight:700;">{{ stats.total_examples }}</div></div>
+      <div><div class="small muted">Learned from you</div><div style="font-size:1.6rem;font-weight:700;">{{ stats.learned_examples }}</div></div>
+      <div><div class="small muted">Corrections</div><div style="font-size:1.6rem;font-weight:700;">{{ stats.corrections }}</div></div>
+      <div><div class="small muted">👍 / 👎</div><div style="font-size:1.6rem;font-weight:700;">{{ stats.feedback_positive }} / {{ stats.feedback_negative }}</div></div>
+      <div><div class="small muted">Feedback accuracy</div><div style="font-size:1.6rem;font-weight:700;">{% if stats.accuracy_estimate != None %}{{ stats.accuracy_estimate }}{% else %}—{% endif %}</div></div>
+      <div><div class="small muted">Workspace items</div><div style="font-size:1.6rem;font-weight:700;">{{ item_count }}</div></div>
+    </div>
+    <p class="small muted mb-0" style="margin-top:12px;">Rate assistant replies 👍/👎 or post a correction to teach the model. New examples are folded into the ensemble on the next message.</p>
+  </div>
+
+  <div class="card" data-animate data-delay="1">
+    <div class="card-head"><h3>Model quality ({{ fold_count }}-fold cross-validation)</h3></div>
+    <div class="form-grid">
+      <div><div class="small muted">Examples</div><div style="font-size:1.6rem;font-weight:700;">{{ example_count }}</div></div>
+      <div><div class="small muted">Accuracy</div><div style="font-size:1.6rem;font-weight:700;">{% widthratio metric_accuracy 1 100 %}%</div></div>
+      <div><div class="small muted">Macro F1</div><div style="font-size:1.6rem;font-weight:700;">{{ metric_f1|floatformat:3 }}</div></div>
+      <div><div class="small muted">Macro precision</div><div style="font-size:1.6rem;font-weight:700;">{{ metric_precision|floatformat:3 }}</div></div>
+      <div><div class="small muted">Macro recall</div><div style="font-size:1.6rem;font-weight:700;">{{ metric_recall|floatformat:3 }}</div></div>
+    </div>
+    <p class="small muted" style="margin-top:12px;">Active model: <strong class="gold">{{ model_names|join:" + " }}</strong> over word n-gram TF-IDF features with temperature calibration.</p>
+    {% if per_class %}
+    <div class="card-head" style="margin-top:8px;"><h3>Per-intent breakdown</h3></div>
+    <div class="row-list">
+      {% for label, m in per_class.items %}
+      <div class="row-item"><div class="grow"><div style="font-weight:600;">{{ label }}</div>
+        <div class="small muted">precision {{ m.precision|floatformat:2 }} · recall {{ m.recall|floatformat:2 }} · f1 {{ m.f1|floatformat:2 }} · n={{ m.support }}</div>
+      </div></div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="two-col">
+  <div class="card" data-animate>
+    <div class="card-head"><h3>Algorithms in use</h3></div>
+    <div class="row-list">
+      <div class="row-item"><div class="grow"><div style="font-weight:600;">Tokenisation, stemming &amp; stop-words</div><div class="small muted">Text preprocessing</div></div></div>
+      <div class="row-item"><div class="grow"><div style="font-weight:600;">TF-IDF + cosine similarity</div><div class="small muted">Lexical retrieval</div></div></div>
+      <div class="row-item"><div class="grow"><div style="font-weight:600;">Latent Semantic Analysis (truncated SVD)</div><div class="small muted">Semantic retrieval</div></div></div>
+      <div class="row-item"><div class="grow"><div style="font-weight:600;">Multinomial Naive Bayes</div><div class="small muted">Intent classification</div></div></div>
+      <div class="row-item"><div class="grow"><div style="font-weight:600;">Softmax regression</div><div class="small muted">Intent classification</div></div></div>
+      <div class="row-item"><div class="grow"><div style="font-weight:600;">k-Nearest Neighbours</div><div class="small muted">Intent classification</div></div></div>
+      <div class="row-item"><div class="grow"><div style="font-weight:600;">Soft-voting ensemble + calibration</div><div class="small muted">Combines NB + softmax + kNN</div></div></div>
+      <div class="row-item"><div class="grow"><div style="font-weight:600;">k-Means</div><div class="small muted">Theme clustering</div></div></div>
+      <div class="row-item"><div class="grow"><div style="font-weight:600;">Retrieval-augmented knowledge base</div><div class="small muted">General Q&amp;A</div></div></div>
+      <div class="row-item"><div class="grow"><div style="font-weight:600;">Safe arithmetic evaluator</div><div class="small muted">Maths questions</div></div></div>
+      <div class="row-item"><div class="grow"><div style="font-weight:600;">N-gram language model</div><div class="small muted">Autocomplete &amp; generation</div></div></div>
+      <div class="row-item"><div class="grow"><div style="font-weight:600;">TextRank (PageRank)</div><div class="small muted">Keywords &amp; summarisation</div></div></div>
+      <div class="row-item"><div class="grow"><div style="font-weight:600;">Lexicon sentiment + negation</div><div class="small muted">Mood analysis</div></div></div>
+      <div class="row-item"><div class="grow"><div style="font-weight:600;">Soundex &amp; Jaro-Winkler</div><div class="small muted">Fuzzy matching</div></div></div>
+    </div>
+  </div>
+
+  <div class="card" data-animate data-delay="1">
+    <div class="card-head"><h3>Recognised intents ({{ intents|length }})</h3></div>
+    <div class="flex-between wrap" style="gap:8px;">
+      {% for intent in intents %}
+      <span class="chip">{{ intent }}</span>
+      {% endfor %}
+    </div>
+    {% if stats.by_intent %}
+    <div class="card-head" style="margin-top:16px;"><h3>Most-trained intents</h3></div>
+    <div class="row-list">
+      {% for intent, count in stats.by_intent.items %}
+      <div class="row-item"><div class="grow">{{ intent }}</div><strong>{{ count }}</strong></div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card" data-animate>
+  <div class="card-head"><h3>Workspace themes (k-Means + LSA)</h3></div>
+  {% if clusters %}
+  <div class="row-list">
+    {% for group in clusters %}
+    <div class="row-item"><div class="grow">
+      <div style="font-weight:600;">Theme {{ forloop.counter }}</div>
+      <div class="small muted">{{ group|join:"; " }}</div>
+    </div></div>
+    {% endfor %}
+  </div>
+  {% else %}
+    <p class="small muted mb-0">Add a few tasks to see automatic theme clustering.</p>
+  {% endif %}
+  {% if keywords %}
+  <div class="card-head" style="margin-top:16px;"><h3>Top keywords (TextRank)</h3></div>
+  <div class="flex-between wrap" style="gap:8px;">
+    {% for word in keywords %}<span class="chip">{{ word }}</span>{% endfor %}
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}{{ task.title }} — Tasks{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <a class="small muted" href="{% url 'tasks:list' %}">← Back to tasks</a>
+    <h1 class="page-title" style="margin-top:6px;">{{ task.title }}</h1>
+    <div class="flex wrap gap-sm" style="margin-top:8px;">
+      <span class="pill prio-{{ task.priority }}">{{ task.get_priority_display }} priority</span>
+      <span class="badge status-{{ task.status }}">{{ task.get_status_display }}</span>
+      {% if task.is_overdue %}<span class="badge red"><span class="dot"></span>Overdue</span>{% endif %}
+      {% if task.category %}<span class="badge">{{ task.category }}</span>{% endif %}
+      {% for t in task.tags.all %}<span class="tag-pill" style="--tag:{{ t.color }}">{{ t.name }}</span>{% endfor %}
+    </div>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-ghost" href="{% url 'tasks:edit' task.pk %}">{% include 'components/icon.html' with name='edit' %} Edit</a>
+    <a class="btn btn-danger btn-ghost" href="{% url 'tasks:delete' task.pk %}">{% include 'components/icon.html' with name='trash' %} Delete</a>
+  </div>
+</div>
+
+<div class="two-col">
+  <div class="card gold-edge" data-animate>
+    <div class="card-head"><h3>Details</h3></div>
+    <p style="white-space:pre-line;color:var(--text-1);">{{ task.description|default:'No description provided.' }}</p>
+    <dl class="kv">
+      <dt>Status</dt><dd>{{ task.get_status_display }}</dd>
+      <dt>Priority</dt><dd>{{ task.get_priority_display }}</dd>
+      <dt>Category</dt><dd>{{ task.category|default:'—' }}</dd>
+      <dt>Due date</dt><dd>{% if task.due_date %}{{ task.due_date|date:'D, M d Y H:i' }}{% else %}—{% endif %}</dd>
+      <dt>Created</dt><dd>{{ task.created_at|date:'M d, Y H:i' }}</dd>
+      <dt>Completed</dt><dd>{% if task.completed_at %}{{ task.completed_at|date:'M d, Y H:i' }}{% else %}—{% endif %}</dd>
+    </dl>
+  </div>
+
+  <div style="display:flex;flex-direction:column;gap:16px;">
+    <div class="card" data-animate data-delay="1">
+      <div class="card-head"><h3>Change status</h3></div>
+      <div class="flex wrap gap-sm">
+        {% for value, label in status_choices %}
+          <form method="post" action="{% url 'tasks:set_status' task.pk %}">
+            {% csrf_token %}
+            <input type="hidden" name="status" value="{{ value }}">
+            <input type="hidden" name="next" value="{% url 'tasks:detail' task.pk %}">
+            <button class="btn btn-sm {% if task.status == value %}btn-gold{% else %}btn-ghost{% endif %}" type="submit">{{ label }}</button>
+          </form>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="card" data-animate data-delay="2">
+      <div class="card-head"><h3>Discussion</h3><span class="badge">{{ comments|length }}</span></div>
+      {% for comment in comments %}
+        <div class="comment" style="padding:10px 0;border-bottom:1px solid var(--line);">
+          <div class="flex gap-sm" style="align-items:center;">
+            <span class="avatar" style="width:26px;height:26px;font-size:.7rem;">{{ comment.author.initials }}</span>
+            <strong class="small">{{ comment.author.display_name }}</strong>
+            <span class="small muted">{{ comment.created_at|date:'M d, H:i' }}</span>
+            {% if comment.author_id == user.id %}
+            <form method="post" action="{% url 'tasks:comment_delete' task.pk comment.pk %}" style="margin-left:auto;"
+                  onsubmit="return confirm('Remove this comment?');">
+              {% csrf_token %}
+              <button class="btn btn-danger btn-ghost btn-sm" type="submit" aria-label="Delete comment">{% include 'components/icon.html' with name='trash' %}</button>
+            </form>
+            {% endif %}
+          </div>
+          <p class="small" style="white-space:pre-line;margin:6px 0 0;color:var(--text-1);">{{ comment.body }}</p>
+        </div>
+      {% empty %}
+        <p class="small muted">No comments yet. Start the conversation.</p>
+      {% endfor %}
+      <form method="post" action="{% url 'tasks:comment_add' task.pk %}" style="margin-top:12px;">
+        {% csrf_token %}
+        {{ comment_form.body }}
+        <div style="margin-top:8px;">
+          <button class="btn btn-gold btn-sm" type="submit">{% include 'components/icon.html' with name='send' %} Comment</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card" data-animate data-delay="2">
+      <div class="card-head"><h3>Recent activity</h3><a class="small" href="{% url 'tasks:activity' task.pk %}">View all</a></div>
+      {% for act in activity %}
+      <div class="timeline">
+        <div class="t-item">
+          <div class="t-time">{{ act.created_at|date:'M d, H:i' }}</div>
+          <div class="t-title">{{ act.get_action_display }}{% if act.detail %} · {{ act.detail }}{% endif %}</div>
+        </div>
+      </div>
+      {% empty %}
+      <p class="small muted mb-0">No activity recorded.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}Backup codes — NexaMind{% endblock %}
+{% block content %}
+<h1 class="page-title">Your backup codes</h1>
+<p class="page-sub">Store these somewhere safe. Each code can be used once if you lose your device.</p>
+{% include 'accounts/_settings_nav.html' %}
+
+<div class="card gold-edge" style="max-width:640px;" data-animate>
+  <div class="alert alert-info" style="margin-bottom:14px;">
+    These codes are shown only once. Copy them now.
+  </div>
+  <div class="code-list">
+    {% for code in codes %}<code>{{ code }}</code>{% endfor %}
+  </div>
+  <div class="form-actions">
+    <button class="btn btn-ghost" type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText('{{ codes|join:' ' }}');nmToast&&nmToast('Backup codes copied','success');">{% include 'components/icon.html' with name='doc' %} Copy all</button>
+    <a class="btn btn-gold" href="{% url 'accounts:twofactor' %}">Done</a>
+  </div>
+</div>
+{% endblock %}

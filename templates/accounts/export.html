@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% block title %}Data &amp; privacy — NexaMind{% endblock %}
+{% block content %}
+<h1 class="page-title">Data &amp; privacy</h1>
+<p class="page-sub">Download a copy of everything in your account, or close it down.</p>
+{% include 'accounts/_settings_nav.html' %}
+
+<div class="card gold-edge" style="max-width:680px;" data-animate>
+  <h2 style="margin:0 0 6px;">Export your data</h2>
+  <p class="small muted" style="margin-top:0;">
+    A portable snapshot of your tasks, events, documents, conversations, workflows, and settings.
+  </p>
+  <div class="form-actions">
+    <a class="btn btn-gold" href="{% url 'accounts:data_export' %}?format=json">{% include 'components/icon.html' with name='box' %} Download JSON</a>
+    <a class="btn btn-ghost" href="{% url 'accounts:data_export' %}?format=zip">{% include 'components/icon.html' with name='doc' %} Download ZIP{% if document_count %} ({{ document_count }} files){% endif %}</a>
+  </div>
+  <p class="small muted-2" style="margin-bottom:0;">
+    The ZIP archive bundles the JSON snapshot plus your uploaded document files and avatar.
+  </p>
+</div>
+
+<div class="card" style="max-width:680px; margin-top:16px; border-color: rgba(248,113,113,.35);" data-animate>
+  <h2 style="margin:0 0 6px;">Delete account</h2>
+  <p class="small muted" style="margin-top:0;">
+    Permanently remove your account and all associated data. This cannot be undone.
+  </p>
+  <form method="post" action="{% url 'accounts:delete_account' %}"
+        onsubmit="return confirm('Delete your account and all data? This cannot be undone.');">
+    {% csrf_token %}
+    <button class="btn btn-gold" style="background:var(--danger); color:#fff;" type="submit">
+      {% include 'components/icon.html' with name='trash' %} Delete my account
+    </button>
+  </form>
+</div>
+{% endblock %}

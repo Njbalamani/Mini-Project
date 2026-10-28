@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}NexaMind — Your AI-Powered Intelligent Workspace{% endblock %}
+
+
+{% block body_class %}landing{% endblock %}
+
+{% block public %}
+<div class="land-cta-bg" style="min-height:100vh;position:relative;overflow:hidden;">
+  <div class="land-nav">
+    <a class="brand" href="/" style="border:0;margin:0;padding:0;">
+      <span class="brand-mark">NM</span>
+    </a>
+    <span class="brand-name grad-text" style="font-family:var(--font-display);font-weight:700;font-size:1.15rem;">NexaMind</span>
+    <div class="spacer"></div>
+    {% if user.is_authenticated %}
+      <a class="btn btn-gold" href="{% url 'dashboard:home' %}">Open Dashboard</a>
+    {% else %}
+      <a class="btn btn-ghost" href="{% url 'accounts:login' %}">Sign in</a>
+      <a class="btn btn-gold" href="{% url 'accounts:register' %}">Get started free</a>
+    {% endif %}
+  </div>
+
+  <section class="land-hero">
+    <div data-animate>
+      <span class="eyebrow">
+        <span class="dot"></span> AI-powered productivity, reimagined
+      </span>
+      <h1 class="grad-text">Command your entire workspace<br>with natural language.</h1>
+      <p class="lede">
+        NexaMind unifies tasks, calendar, email, documents, and automation into one
+        intelligent cockpit — driven by an AI assistant that understands your intent
+        and acts with your approval.
+      </p>
+      <div class="hero-cta">
+        {% if user.is_authenticated %}
+          <a class="btn btn-gold btn-lg" href="{% url 'dashboard:home' %}">Open Dashboard {% include 'components/icon.html' with name='arrow' %}</a>
+        {% else %}
+          <a class="btn btn-gold btn-lg" href="{% url 'accounts:register' %}">Create free account {% include 'components/icon.html' with name='arrow' %}</a>
+          <a class="btn btn-ghost btn-lg" href="{% url 'accounts:login' %}">Sign in</a>
+        {% endif %}
+      </div>
+      <div class="hero-proof" data-animate data-delay="2">
+        <div class="stat"><span class="num" data-count="16">16</span><span class="lbl">Workspace modules</span></div>
+        <div class="stat"><span class="num" data-count="5">5</span><span class="lbl">Deep integrations</span></div>
+        <div class="stat"><span class="num" data-count="100" data-suffix="%">100%</span><span class="lbl">Private & secured</span></div>
+      </div>
+    </div>
+
+    <div class="hero-visual" data-animate data-delay="1">
+      <div class="hero-glow"></div>
+      <div class="dash-mock" aria-hidden="true">
+        <div class="dm-row">
+          <div class="dm-card"><div class="bar"></div><div class="bar short"></div></div>
+          <div class="dm-card"><div class="bar" style="width:48%;"></div><div class="bar short" style="width:70%;"></div></div>
+        </div>
+        <div class="dm-chat">
+          <div class="dm-m user"><div class="bub"></div></div>
+          <div class="dm-m ai"><div class="bub"></div></div>
+          <div class="dm-m ai"><div class="bub gold"></div></div>
+          <div class="dm-m user"><div class="bub" style="width:45%;"></div></div>
+          <div class="dm-m ai"><div class="bub" style="width:62%;"></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="gold-rule">
+
+  <section class="land-section">
+    <div class="sec-head" data-animate>
+      <span class="eyebrow">Capabilities</span>
+      <h2>One platform. Every intelligent tool.</h2>
+    </div>
+    <div class="feat-grid">
+      {% for f in features %}
+      <div class="card card-hover feat-card gold-edge" data-animate data-delay="{{ forloop.counter }}">
+        <div class="card-icon">{% include 'components/icon.html' with name=f.icon %}</div>
+        <h3>{{ f.title }}</h3>
+        <p>{{ f.text }}</p>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <hr class="gold-rule">
+
+  <section class="land-section">
+    <div class="sec-head" data-animate>
+      <span class="eyebrow">How it works</span>
+      <h2>Productivity in four royal steps</h2>
+    </div>
+    <div class="steps">
+      <div class="card step" data-animate><h3>Connect your tools</h3><p>Link Gmail, Google Calendar and GitHub — read-only by default, with your full consent.</p></div>
+      <div class="card step" data-animate data-delay="1"><h3>Talk to your assistant</h3><p>Ask NexaMind to summarize, schedule, or draft in plain English.</p></div>
+      <div class="card step" data-animate data-delay="2"><h3>Approve pre-validated actions</h3><p>Every proposed task, event or workflow must pass validation — and your approval.</p></div>
+      <div class="card step" data-animate data-delay="3"><h3>Automate the rest</h3><p>Visual workflows turn overdue tasks, schedules and reminders into self-running processes.</p></div>
+    </div>
+  </section>
+</div>
+
+<div class="land-cta">
+  <h2 class="grad-text">Ready to take command of your day?</h2>
+  <p>Free plan included — no credit card, no setup friction. Launch your royal workspace in under a minute.</p>
+  <div class="hero-cta" style="justify-content:center;">
+    {% if user.is_authenticated %}
+      <a class="btn btn-gold btn-lg" href="{% url 'dashboard:home' %}">Open Dashboard</a>
+    {% else %}
+      <a class="btn btn-gold btn-lg" href="{% url 'accounts:register' %}">Start now — it's free</a>
+    {% endif %}
+  </div>
+</div>
+
+<footer class="land-foot">
+  <span>© {% now 'Y' %} NexaMind. A mini-project built with Django.</span>
+  <div class="spacer"></div>
+  <a href="/api/docs/" target="_blank" rel="noopener">API Reference</a>
+  <a href="/admin/" target="_blank" rel="noopener">Admin</a>
+  <a href="{% url 'accounts:login' %}">Sign in</a>
+</footer>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll(".dash-mock .dm-m").forEach(function (m, i) {
+      m.style.animation = "none";
+      void m.offsetHeight;
+      m.style.animation = "msgIn .6s cubic-bezier(.22,1,.36,1) " + (i * 0.25) + "s both";
+    });
+  });
+</script>
+{% endblock %}

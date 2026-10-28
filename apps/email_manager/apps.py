@@ -1,0 +1,7 @@
+from django.apps import AppConfig
+
+
+class EmailManagerConfig(AppConfig):
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "apps.email_manager"
+    verbose_name = "Email Assistant"

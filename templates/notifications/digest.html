@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+{% block title %}Digest preview — Notifications{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <a class="small muted" href="{% url 'notifications:list' %}">← Back to notifications</a>
+    <h1 class="page-title" style="margin-top:6px;">Digest preview</h1>
+    <p class="page-sub mb-0">A snapshot of your workspace over the last {{ digest.days }} days.</p>
+  </div>
+  <div class="page-actions">
+    <form method="post" action="{% url 'notifications:digest_send' %}">
+      {% csrf_token %}
+      <button class="btn btn-gold" type="submit">{% include 'components/icon.html' with name='send' %} Send to my notifications</button>
+    </form>
+  </div>
+</div>
+
+<div class="card gold-edge" data-animate>
+  <p style="margin-top:0;color:var(--text-1);">{{ digest.message }}</p>
+  <div class="stat-row" style="display:flex;gap:24px;flex-wrap:wrap;margin-top:12px;">
+    <div><div class="page-title" style="font-size:1.6rem;">{{ digest.open_count }}</div><div class="small muted">Open tasks</div></div>
+    <div><div class="page-title" style="font-size:1.6rem;">{{ digest.overdue_count }}</div><div class="small muted">Overdue</div></div>
+    <div><div class="page-title" style="font-size:1.6rem;">{{ digest.completed_count }}</div><div class="small muted">Completed</div></div>
+  </div>
+</div>
+
+<div class="two-col mt-16">
+  <div class="card" data-animate data-delay="1">
+    <div class="card-head"><h3>Overdue tasks</h3><span class="badge red">{{ digest.overdue_count }}</span></div>
+    {% if digest.overdue_titles %}
+      <ul class="plain-list">
+        {% for title in digest.overdue_titles %}<li>{{ title }}</li>{% endfor %}
+      </ul>
+    {% else %}
+      <p class="small muted mb-0">Nothing overdue. Nice.</p>
+    {% endif %}
+  </div>
+
+  <div class="card" data-animate data-delay="1">
+    <div class="card-head"><h3>Due soon</h3></div>
+    {% if digest.due_soon_titles %}
+      <ul class="plain-list">
+        {% for title in digest.due_soon_titles %}<li>{{ title }}</li>{% endfor %}
+      </ul>
+    {% else %}
+      <p class="small muted mb-0">No tasks due in the next {{ digest.days }} days.</p>
+    {% endif %}
+  </div>
+</div>
+
+<div class="card mt-16" data-animate data-delay="2">
+  <div class="card-head"><h3>Upcoming events</h3></div>
+  {% if digest.events %}
+    <ul class="plain-list">
+      {% for event in digest.events %}<li>{{ event.title }} <span class="small muted">· {{ event.start|date:'M d, H:i' }}</span></li>{% endfor %}
+    </ul>
+  {% else %}
+    <p class="small muted mb-0">No events in the next {{ digest.days }} days.</p>
+  {% endif %}
+</div>
+{% endblock %}

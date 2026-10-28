@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Enable two-factor — NexaMind{% endblock %}
+{% block content %}
+<h1 class="page-title">Enable two-factor authentication</h1>
+<p class="page-sub">Scan the QR code with your authenticator app, then enter the 6-digit code.</p>
+{% include 'accounts/_settings_nav.html' %}
+
+<div class="card gold-edge" style="max-width:640px;" data-animate>
+  <div style="display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start;">
+    <div class="qr-frame"><img src="{{ qr }}" alt="Two-factor QR code" width="190" height="190"></div>
+    <div style="flex:1; min-width:220px;">
+      <p class="small muted" style="margin-top:0;">Can't scan? Enter this key manually:</p>
+      <div class="token-box">{{ secret }}</div>
+      <form method="post" novalidate style="margin-top:16px;">
+        {% csrf_token %}
+        <div class="field">
+          <label for="code">Authentication code</label>
+          <input class="form-input" id="code" name="code" inputmode="numeric" autocomplete="one-time-code"
+                 autofocus placeholder="123456" maxlength="6">
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-gold" type="submit">Verify &amp; enable</button>
+          <a class="btn btn-ghost" href="{% url 'accounts:twofactor' %}">Cancel</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

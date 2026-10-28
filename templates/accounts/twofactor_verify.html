@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block title %}Two-factor verification — NexaMind{% endblock %}
+{% block content %}
+<div style="max-width:440px; margin:6vh auto 0;">
+  <div class="card gold-edge" data-animate>
+    <div class="center" style="margin-bottom:10px;">{% include 'components/icon.html' with name='shield' %}</div>
+    <h1 class="page-title" style="text-align:center;">Two-factor verification</h1>
+    <p class="page-sub" style="text-align:center;">Enter the code from your authenticator app to continue.</p>
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="field {% if form.code.errors %}is-invalid{% endif %}">
+        <label for="{{ form.code.id_for_label }}">Authentication code</label>
+        {{ form.code }}
+        {% for e in form.code.errors %}<span class="error">{{ e }}</span>{% endfor %}
+      </div>
+      <button class="btn btn-gold" type="submit" style="width:100%;">Verify</button>
+    </form>
+    <p class="small muted center" style="margin:14px 0 0;">
+      Lost your device? Enter one of your saved backup codes.
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create account — NexaMind{% endblock %}
+
+{% block public %}
+<div class="login-layout">
+  <aside class="login-side">
+    <a class="brand" href="/" style="border:0;margin:0;padding:0;"><span class="brand-mark">NM</span></a>
+    <div class="login-quote grad-text" data-animate>
+      "Every day, in your inbox, your schedule, your notes — a crown of small decisions awaits."
+    </div>
+    <div class="muted small" data-animate data-delay="1">Register in under a minute. No card required.</div>
+  </aside>
+
+  <div style="display:grid;place-items:center;padding:40px 22px;">
+    <div class="card" style="width:min(460px,100%);" data-animate>
+      <div class="center mb-16">
+        <h2 class="grad-text" style="margin:0;">Create your account</h2>
+        <p class="muted small" style="margin:8px 0 0;">Your royal AI workspace awaits</p>
+      </div>
+
+      {% if messages %}
+        {% for m in messages %}<div class="alert alert-{% if m.tags %}{{ m.tags }}{% else %}info{% endif %}">{{ m }}</div>{% endfor %}
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="form-grid">
+          {% if form.non_field_errors %}
+            <div class="alert alert-error">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>
+          {% endif %}
+          <div class="field {% if form.email.errors %}is-invalid{% endif %}">
+            <label for="{{ form.email.id_for_label }}">Email address</label>
+            {{ form.email }}
+            {% for e in form.email.errors %}<span class="error">{{ e }}</span>{% endfor %}
+          </div>
+          <div class="field">
+            <label for="{{ form.full_name.id_for_label }}">Full name <span class="muted-2 small">(optional)</span></label>
+            {{ form.full_name }}
+          </div>
+          <div class="field {% if form.password1.errors %}is-invalid{% endif %}">
+            <label for="{{ form.password1.id_for_label }}">Password</label>
+            {{ form.password1 }}
+            {% for e in form.password1.errors %}<span class="error">{{ e }}</span>{% endfor %}
+          </div>
+          <div class="field {% if form.password2.errors %}is-invalid{% endif %}">
+            <label for="{{ form.password2.id_for_label }}">Confirm password</label>
+            {{ form.password2 }}
+            {% for e in form.password2.errors %}<span class="error">{{ e }}</span>{% endfor %}
+          </div>
+          <div class="field {% if form.agree.errors %}is-invalid{% endif %}">
+            <label class="check-row">
+              {{ form.agree }} I agree to the <a href="#" onclick="return false;">Terms</a> &amp; <a href="#" onclick="return false;">Privacy Policy</a>
+            </label>
+            {% for e in form.agree.errors %}<span class="error">{{ e }}</span>{% endfor %}
+          </div>
+          <button class="btn btn-gold btn-lg btn-block" type="submit">Create account</button>
+          <p class="center small muted" style="margin:0;">Already have an account?
+            <a href="{% url 'accounts:login' %}">Sign in</a>
+          </p>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

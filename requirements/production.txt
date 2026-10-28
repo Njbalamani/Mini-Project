@@ -1,0 +1,8 @@
+# NexaMind - production dependencies
+-r base.txt
+
+# PostgreSQL driver
+psycopg[binary]==3.3.6
+
+# WSGI server
+gunicorn==23.0.0

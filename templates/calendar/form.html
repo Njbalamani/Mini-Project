@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% block title %}{% if mode == 'edit' %}Edit event{% else %}New event{% endif %} — NexaMind{% endblock %}
+{% block content %}
+<h1 class="page-title">{% if mode == 'edit' %}Edit event{% else %}Create an event{% endif %}</h1>
+<p class="page-sub">Times are shown in your local timezone ({{ event.timezone|default:'local' }}).</p>
+
+{% if conflicts %}
+<div class="alert alert-warning">
+  <strong>Scheduling conflict:</strong>
+  {% for c in conflicts %}<div>“{{ c.title }}” overlaps ({{ c.start|date:'M d H:i' }}–{{ c.end|date:'H:i' }}).</div>{% endfor %}
+</div>
+{% endif %}
+
+<div class="card gold-edge" style="max-width:680px;" data-animate>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <input type="hidden" name="acknowledge" value="{% if conflicts %}1{% else %}0{% endif %}">
+    <div class="form-grid">
+      {% if form.non_field_errors %}<div class="alert alert-error">{{ form.non_field_errors }}</div>{% endif %}
+      <div class="field {% if form.title.errors %}is-invalid{% endif %}">
+        <label for="{{ form.title.id_for_label }}">Title</label>{{ form.title }}
+        {% for e in form.title.errors %}<span class="error">{{ e }}</span>{% endfor %}
+      </div>
+      <div class="two-col">
+        <div class="field {% if form.start.errors %}is-invalid{% endif %}">
+          <label for="{{ form.start.id_for_label }}">Start</label>{{ form.start }}
+          {% for e in form.start.errors %}<span class="error">{{ e }}</span>{% endfor %}
+        </div>
+        <div class="field {% if form.end.errors %}is-invalid{% endif %}">
+          <label for="{{ form.end.id_for_label }}">End</label>{{ form.end }}
+          {% for e in form.end.errors %}<span class="error">{{ e }}</span>{% endfor %}
+        </div>
+      </div>
+      <div class="two-col">
+        <div class="field"><label for="{{ form.location.id_for_label }}">Location</label>{{ form.location }}</div>
+        <div class="field"><label for="{{ form.recurrence.id_for_label }}">Repeat</label>{{ form.recurrence }}</div>
+      </div>
+      <div class="field"><label for="{{ form.description.id_for_label }}">Description</label>{{ form.description }}</div>
+      <div class="two-col">
+        <div class="field"><label for="{{ form.reminder_minutes.id_for_label }}">Reminder</label>{{ form.reminder_minutes }}</div>
+        <div class="field"><label class="switch-label" for="{{ form.all_day.id_for_label }}">All day {{ form.all_day }}</label></div>
+      </div>
+      <div class="flex gap-sm">
+        <button class="btn btn-gold" type="submit">{% if mode == 'edit' %}Save changes{% else %}Create event{% endif %}</button>
+        <a class="btn btn-ghost" href="{% if mode == 'edit' %}{% url 'calendar_manager:detail' event.pk %}{% else %}{% url 'calendar_manager:calendar' %}{% endif %}">Cancel</a>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

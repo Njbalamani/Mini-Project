@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Video call — NexaMind{% endblock %}
+{% block head %}<script src="{% static 'js/webrtc-call.js' %}" defer></script>{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <a class="small muted" href="{% url 'integrations:center' %}">← Integrations</a>
+    <h1 class="page-title" style="margin-top:6px;">{% include 'components/icon.html' with name='video' %} Video call</h1>
+    <p class="page-sub mb-0">Peer-to-peer calling. Your camera and microphone stay on your device — nothing is recorded or sent to a server.</p>
+  </div>
+</div>
+
+<div class="call-grid" data-webrtc>
+  <div class="card gold-edge" data-animate>
+    <div class="card-head"><h3>Preview</h3><span class="badge" data-call-status>Idle</span></div>
+    <div class="call-videos">
+      <video data-local-video autoplay playsinline muted></video>
+      <video data-remote-video autoplay playsinline></video>
+    </div>
+    <div class="flex gap-sm wrap" style="margin-top:12px;">
+      <button class="btn btn-gold" type="button" data-call-start>{% include 'components/icon.html' with name='video' %} Start camera</button>
+      <button class="btn btn-ghost" type="button" data-call-hangup>{% include 'components/icon.html' with name='x' %} Hang up</button>
+    </div>
+  </div>
+
+  <div class="card" data-animate data-delay="1">
+    <div class="card-head"><h3>Connect to a peer</h3></div>
+    <p class="small muted">WebRTC needs a one-time handshake. Caller creates an offer, the other side pastes it and returns an answer.</p>
+
+    <ol class="call-steps">
+      <li>
+        <button class="btn btn-ghost btn-sm" type="button" data-call-create-offer>Create offer (caller)</button>
+        <textarea class="form-input mono" rows="4" data-call-offer placeholder="Offer appears here — copy it to your peer"></textarea>
+      </li>
+      <li>
+        <textarea class="form-input mono" rows="4" data-call-answer-input placeholder="Paste your peer's answer here"></textarea>
+        <button class="btn btn-gold btn-sm" type="button" data-call-accept-answer>Accept answer</button>
+      </li>
+      <li>
+        <textarea class="form-input mono" rows="4" data-call-remote-offer placeholder="Paste the peer's offer here (answerer)"></textarea>
+        <button class="btn btn-gold btn-sm" type="button" data-call-create-answer>Create answer</button>
+        <textarea class="form-input mono" rows="4" data-call-answer-out placeholder="Copy this answer back to the caller"></textarea>
+      </li>
+    </ol>
+    <p class="small muted mb-0" data-call-error></p>
+  </div>
+</div>
+{% endblock %}

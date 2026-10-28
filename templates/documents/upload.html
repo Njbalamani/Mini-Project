@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}Upload document — NexaMind{% endblock %}
+{% block content %}
+<h1 class="page-title">Upload a document</h1>
+<p class="page-sub">Supported formats: PDF, DOCX, TXT · up to {{ max_mb }} MB.</p>
+
+<div class="card gold-edge" style="max-width:620px;" data-animate>
+  <form method="post" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+    {% if form.non_field_errors %}<div class="alert alert-error">{{ form.non_field_errors }}</div>{% endif %}
+    <div class="form-grid">
+      <div class="field {% if form.title.errors %}is-invalid{% endif %}">
+        <label for="{{ form.title.id_for_label }}">Title <span class="muted-2 small">(optional)</span></label>{{ form.title }}
+        {% for e in form.title.errors %}<span class="error">{{ e }}</span>{% endfor %}
+      </div>
+      <div class="field {% if form.file.errors %}is-invalid{% endif %}">
+        <label for="{{ form.file.id_for_label }}">File</label>{{ form.file }}
+        {% for e in form.file.errors %}<span class="error">{{ e }}</span>{% endfor %}
+      </div>
+      <div class="flex gap-sm">
+        <button class="btn btn-gold" type="submit">{% include 'components/icon.html' with name='upload' %} Upload &amp; process</button>
+        <a class="btn btn-ghost" href="{% url 'documents:list' %}">Cancel</a>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

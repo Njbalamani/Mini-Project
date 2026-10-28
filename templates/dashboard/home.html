@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% load static humanize %}
+{% block title %}Dashboard — NexaMind{% endblock %}
+{% block head %}<script src="{% static 'js/dashboard.js' %}"></script>{% endblock %}
+{% block scripts %}{% endblock %}
+
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <h1 class="page-title">Good {{ greeting|default:'day' }}, <span class="grad-text">{{ user.display_name }}</span></h1>
+    <p class="page-sub mb-0">Here is the state of your intelligent workspace.</p>
+  </div>
+  <div class="page-actions">
+    <a class="btn btn-ghost" href="{% url 'tasks:create' %}">{% include 'components/icon.html' with name='plus' %} New task</a>
+    <a class="btn btn-ghost" href="{% url 'calendar_manager:create' %}">{% include 'components/icon.html' with name='plus' %} Schedule</a>
+    <form method="post" action="{% url 'ai_assistant:new_conversation' %}">
+      {% csrf_token %}
+      <button class="btn btn-gold" type="submit">{% include 'components/icon.html' with name='spark' %} Ask AI</button>
+    </form>
+  </div>
+</div>
+
+{% if not data.tasks.total %}
+<div class="alert alert-info" data-animate>
+  Welcome aboard! Create your first task, connect an integration, or chat with the AI assistant to get started. <a href="{% url 'tasks:create' %}">Create a task</a>.
+</div>
+{% endif %}
+
+<div class="metric-grid">
+  <div class="card stat-card gold" data-animate>
+    <div class="stat-label">Total tasks</div>
+    <div class="stat-value" data-count="{{ data.tasks.total }}">{{ data.tasks.total }}</div>
+    <div class="stat-delta">{{ data.tasks.completed }} completed</div>
+  </div>
+  <div class="card stat-card" data-animate data-delay="1">
+    <div class="stat-label">Pending</div>
+    <div class="stat-value" data-count="{{ data.tasks.pending }}">{{ data.tasks.pending }}</div>
+    <div class="stat-delta">{% if data.tasks.overdue %}<span class="gold">{{ data.tasks.overdue }} overdue</span>{% else %}All on track{% endif %}</div>
+    <div class="stat-spark">✦</div>
+  </div>
+  <div class="card stat-card" data-animate data-delay="2">
+    <div class="stat-label">Workflow executions</div>
+    <div class="stat-value" data-count="{{ data.workflows.executions }}">{{ data.workflows.executions }}</div>
+    <div class="stat-delta">{{ data.workflows.success_rate }}% success rate</div>
+  </div>
+  <div class="card stat-card" data-animate data-delay="3">
+    <div class="stat-label">Connections</div>
+    <div class="stat-value" data-count="{{ data.integrations.connected }}">{{ data.integrations.connected }}</div>
+    <div class="stat-delta">{% if data.unread %}<span class="gold">{{ data.unread }} unread notification{{ data.unread|pluralize }}</span>{% else %}No unread alerts{% endif %}</div>
+  </div>
+</div>
+
+<div class="chart-grid mt-24">
+  <div class="card gold-edge" data-animate>
+    <div class="card-head"><h3>Task productivity — last 7 days</h3><span class="badge gold">Live</span></div>
+    <canvas id="chart-trend" data-chart='{{ trend_json|escape }}'></canvas>
+  </div>
+  <div class="card" data-animate data-delay="1">
+    <div class="card-head"><h3>Task status</h3><span class="badge">Real data</span></div>
+    <canvas id="chart-status" data-chart='{{ status_json|escape }}'></canvas>
+  </div>
+</div>
+
+<div class="metric-grid mt-24" style="grid-template-columns:repeat(auto-fit,minmax(300px,1fr));">
+  <div class="card" data-animate>
+    <div class="card-head"><h3>Upcoming events</h3><a class="small" href="{% url 'calendar_manager:calendar' %}">Open calendar</a></div>
+    {% if data.events %}
+    <div class="row-list">
+      {% for ev in data.events %}
+      <a class="row-item" href="{% url 'calendar_manager:detail' ev.pk %}">
+        <div class="card-icon" style="width:38px;height:38px;">{% include 'components/icon.html' with name='calendar' %}</div>
+        <div class="grow">
+          <div style="font-weight:600;">{{ ev.title }}</div>
+          <div class="small muted">{{ ev.start|date:'D, M d H:i' }} · {{ ev.duration_minutes }} min</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    {% include 'components/empty.html' with icon='calendar' title='No upcoming events' text='Schedule your first event from the calendar.' url='calendar_manager:create' url_text='Schedule event' %}
+    {% endif %}
+  </div>
+
+  <div class="card" data-animate data-delay="1">
+    <div class="card-head"><h3>Recent activity</h3><a class="small" href="{% url 'audit_logs:list' %}">View all</a></div>
+    {% if data.activity %}
+    <div class="timeline">
+      {% for act in data.activity %}
+      <div class="t-item">
+        <div class="t-time">{{ act.timestamp|naturaltime }}</div>
+        <div class="t-title">{{ act.action|title }}</div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    {% include 'components/empty.html' with icon='shield' title='No activity yet' text='Your actions will be logged here.' %}
+    {% endif %}
+  </div>
+
+  <div class="card" data-animate data-delay="2">
+    <div class="card-head"><h3>AI conversations</h3><a class="small" href="{% url 'ai_assistant:home' %}">Open assistant</a></div>
+    {% if data.conversations %}
+    <div class="row-list">
+      {% for c in data.conversations %}
+      <a class="row-item" href="{% url 'ai_assistant:conversation' c.pk %}">
+        <span class="card-icon" style="width:38px;height:38px;">{% include 'components/icon.html' with name='spark' %}</span>
+        <div class="grow">
+          <div style="font-weight:600;">{{ c.title|truncatechars:40 }}</div>
+          <div class="small muted">{{ c.updated_at|naturaltime }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}
+    {% include 'components/empty.html' with icon='spark' title='No conversations yet' text='Start chatting with your AI assistant.' url='ai_assistant:home' url_text='Ask NexaMind' %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

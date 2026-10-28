@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Delete document — NexaMind{% endblock %}
+{% block content %}
+<div class="card" style="max-width:520px;margin:40px auto;text-align:center;" data-animate>
+  <h2>Delete this document?</h2>
+  <p class="muted">“{{ document.title }}” and all its analyses will be permanently removed.</p>
+  <form method="post" class="flex gap-sm" style="justify-content:center;">
+    {% csrf_token %}
+    <button class="btn btn-danger" type="submit">Yes, delete</button>
+    <a class="btn btn-ghost" href="{% url 'documents:detail' document.pk %}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}{{ workflow.name }} — Workflow{% endblock %}
+{% block content %}
+<div class="page-head" data-animate>
+  <div>
+    <a class="small muted" href="{% url 'workflow_automation:list' %}">← Back to workflows</a>
+    <h1 class="page-title" style="margin-top:6px;">{{ workflow.name }}</h1>
+    <div class="flex wrap gap-sm" style="margin-top:8px;">
+      {% if workflow.is_enabled %}<span class="badge green"><span class="dot"></span>Enabled</span>{% else %}<span class="badge">Disabled</span>{% endif %}
+      <span class="badge">{{ workflow.run_count }} runs</span>
+      {% if workflow.last_run_at %}<span class="badge">Last {{ workflow.last_run_at|timesince }} ago</span>{% endif %}
+    </div>
+  </div>
+  <div class="page-actions">
+    <form method="post" action="{% url 'workflow_automation:run' workflow.pk %}">
+      {% csrf_token %}
+      <input type="hidden" name="nonce" value="{{ workflow.updated_at|date:'U' }}">
+      <button class="btn btn-gold" type="submit">{% include 'components/icon.html' with name='run' %} Run now</button>
+    </form>
+    <a class="btn btn-ghost" href="{% url 'workflow_automation:edit' workflow.pk %}">{% include 'components/icon.html' with name='edit' %} Edit</a>
+    <a class="btn btn-danger btn-ghost" href="{% url 'workflow_automation:delete' workflow.pk %}">{% include 'components/icon.html' with name='trash' %} Delete</a>
+  </div>
+</div>
+
+<div class="two-col">
+  <div class="card gold-edge" data-animate>
+    <div class="card-head"><h3>Configuration</h3>
+      <form method="post" action="{% url 'workflow_automation:toggle' workflow.pk %}">{% csrf_token %}
+        <button class="btn btn-ghost btn-sm" type="submit">{% if workflow.is_enabled %}Disable{% else %}Enable{% endif %}</button>
+      </form>
+    </div>
+    {% if workflow.description %}<p class="muted">{{ workflow.description }}</p>{% endif %}
+    <dl class="kv">
+      <dt>Trigger</dt><dd>{% for t in workflow.triggers.all %}{{ t.get_trigger_type_display }}{% if t.schedule_time %} at {{ t.schedule_time }}{% endif %}{% empty %}—{% endfor %}</dd>
+      <dt>Condition</dt><dd>{% for c in workflow.conditions.all %}{{ c.get_condition_type_display }}{% empty %}—{% endfor %}</dd>
+      <dt>Actions</dt><dd>{% for a in workflow.actions.all %}{{ a.get_action_type_display }}{% if not forloop.last %}, {% endif %}{% empty %}—{% endfor %}</dd>
+    </dl>
+  </div>
+
+  <div class="card" data-animate data-delay="1">
+    <div class="card-head"><h3>Dry-run preview</h3></div>
+    {% if preview.valid %}
+      <div class="timeline">
+        {% for step in preview.steps %}
+        <div class="t-item">
+          <div class="t-time">{{ step.kind|title }}</div>
+          <div class="t-title">{{ step.label }}</div>
+        </div>
+        {% endfor %}
+      </div>
+      <p class="small muted mb-0">Conditions currently met: <strong class="gold">{{ preview.conditions_met }}</strong></p>
+    {% else %}
+      <div class="alert alert-warning">{{ preview.errors|join:'; ' }}</div>
+    {% endif %}
+  </div>
+</div>
+
+{% if is_webhook_trigger %}
+<div class="card mt-24" data-animate data-delay="2">
+  <div class="card-head"><h3>Inbound webhook</h3>
+    <form method="post" action="{% url 'workflow_automation:webhook_regenerate' workflow.pk %}"
+          onsubmit="return confirm('Regenerate the webhook URL? The old URL will stop working.');">
+      {% csrf_token %}
+      <button class="btn btn-ghost btn-sm" type="submit">{% include 'components/icon.html' with name='refresh' %} Regenerate</button>
+    </form>
+  </div>
+  <p class="small muted">POST JSON to this secret URL to trigger the workflow. Keep it private — anyone with the link can run it.</p>
+  <div class="copy-row">
+    <input class="form-input" type="text" id="webhook-url" value="{{ webhook_url }}" readonly onclick="this.select()">
+    <button class="btn btn-gold btn-sm" type="button" id="webhook-copy">{% include 'components/icon.html' with name='external' %} Copy</button>
+  </div>
+  <p class="small muted-2 mb-0" style="margin-top:8px;">Optional: send an <code>X-NexaMind-Idempotency</code> header to prevent duplicate runs.</p>
+</div>
+{% endif %}
+
+<div class="card mt-24" data-animate data-delay="2">
+  <div class="card-head"><h3>Recent executions</h3><a class="small" href="{% url 'workflow_automation:executions' %}">View all</a></div>
+  {% if executions %}
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Started</th><th>Reason</th><th>Status</th><th>Duration</th><th></th></tr></thead>
+      <tbody>
+        {% for ex in executions %}
+        <tr>
+          <td>{{ ex.started_at|date:'M d, H:i' }}</td>
+          <td>{{ ex.trigger_reason|default:'—' }}</td>
+          <td><span class="badge status-{{ ex.status }}">{{ ex.get_status_display }}</span></td>
+          <td>{% if ex.duration_seconds %}{{ ex.duration_seconds }}s{% else %}—{% endif %}</td>
+          <td><a class="small" href="{% url 'workflow_automation:execution' ex.pk %}">Detail</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+    <p class="small muted mb-0">No executions yet. Run the workflow to see results here.</p>
+  {% endif %}
+</div>
+
+{% if is_webhook_trigger %}
+<script>
+(function () {
+  var btn = document.getElementById('webhook-copy');
+  var field = document.getElementById('webhook-url');
+  if (!btn || !field) return;
+  btn.addEventListener('click', function () {
+    field.select();
+    var done = function () {
+      var html = btn.innerHTML;
+      btn.textContent = 'Copied!';
+      setTimeout(function () { btn.innerHTML = html; }, 1500);
+    };
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(field.value).then(done, function () { document.execCommand('copy'); done(); });
+    } else {
+      document.execCommand('copy');
+      done();
+    }
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}

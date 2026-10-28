@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}Disable two-factor — NexaMind{% endblock %}
+{% block content %}
+<h1 class="page-title">Disable two-factor authentication</h1>
+<p class="page-sub">This removes the second step from your account. Confirm your password to proceed.</p>
+{% include 'accounts/_settings_nav.html' %}
+
+<div class="card" style="max-width:520px;" data-animate>
+  <div class="alert alert-error" style="margin-bottom:16px;">
+    Disabling two-factor makes your account less secure.
+  </div>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <div class="field {% if form.password.errors %}is-invalid{% endif %}">
+      <label for="{{ form.password.id_for_label }}">{{ form.password.label }}</label>
+      {{ form.password }}
+      {% for e in form.password.errors %}<span class="error">{{ e }}</span>{% endfor %}
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-gold" type="submit">Disable two-factor</button>
+      <a class="btn btn-ghost" href="{% url 'accounts:twofactor' %}">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

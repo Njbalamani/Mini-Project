@@ -1,0 +1,9 @@
+<div class="settings-nav">
+  <a class="btn btn-ghost btn-sm" href="{% url 'accounts:profile' %}">{% include 'components/icon.html' with name='gear' %} Profile</a>
+  <a class="btn btn-ghost btn-sm" href="{% url 'accounts:preferences' %}">{% include 'components/icon.html' with name='bell' %} Preferences</a>
+  <a class="btn btn-ghost btn-sm" href="{% url 'accounts:change_password' %}">{% include 'components/icon.html' with name='key' %} Password</a>
+  <a class="btn btn-ghost btn-sm" href="{% url 'accounts:twofactor' %}">{% include 'components/icon.html' with name='shield' %} Two-factor</a>
+  <a class="btn btn-ghost btn-sm" href="{% url 'accounts:sessions' %}">{% include 'components/icon.html' with name='shield' %} Sessions</a>
+  <a class="btn btn-ghost btn-sm" href="{% url 'accounts:api_tokens' %}">{% include 'components/icon.html' with name='key' %} API tokens</a>
+  <a class="btn btn-ghost btn-sm" href="{% url 'accounts:data_privacy' %}">{% include 'components/icon.html' with name='box' %} Data &amp; privacy</a>
+</div>
